@@ -1,0 +1,30 @@
+{
+  "menu": [
+    {
+      "url": "/",
+      "name": "Dashboards",
+      "icon": "menu-icon icon-base bx bx-home-smile",
+      "slug": "dashboard"
+    },
+    {
+      "url": "users",
+      "name": "Manajemen User",
+      "icon": "menu-icon icon-base bx bx-user",
+      "slug": "users",
+      "adminOnly": true
+    },
+    {
+      "url": "skpd",
+      "name": "Data SKPD",
+      "icon": "menu-icon icon-base bx bx-buildings",
+      "slug": "skpd",
+      "adminOnly": true
+    },
+    {
+      "url": "dokumen",
+      "name": "Data Dokumen",
+      "icon": "menu-icon icon-base bx bx-file",
+      "slug": "dokumen"
+    }
+  ]
+}

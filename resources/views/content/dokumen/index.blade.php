@@ -74,8 +74,10 @@
             @endif
 
             <!-- Toast Container (Pojok kanan atas layar dengan jarak aman) -->
-            <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1090; margin-top: 1rem; margin-right: 1.5rem;" id="toastPlacementContainer">
-                <div id="ajaxLiveToast" class="bs-toast toast fade shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-container position-fixed top-0 end-0 p-3"
+                style="z-index: 1090; margin-top: 1rem; margin-right: 1.5rem;" id="toastPlacementContainer">
+                <div id="ajaxLiveToast" class="bs-toast toast fade shadow-lg" role="alert" aria-live="assertive"
+                    aria-atomic="true">
                     <div class="toast-header">
                         <i class="icon-base bx bx-bell me-2" id="toastIcon"></i>
                         <div class="me-auto fw-semibold" id="toastTitle">Pemberitahuan</div>
@@ -169,7 +171,7 @@
                             <input type="file" class="form-control" id="create_dok_file" name="dok_file"
                                 accept=".pdf,application/pdf" required>
                             <small class="text-muted">Hanya berkas format <strong>.PDF</strong> dengan ukuran maksimal
-                                <strong>20 MB</strong>.</small>
+                                <strong>2 MB</strong>.</small>
                         </div>
 
                         <div class="alert alert-warning py-2 small mb-0">

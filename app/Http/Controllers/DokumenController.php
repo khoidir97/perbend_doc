@@ -44,7 +44,7 @@ class DokumenController extends Controller
             ->orWhere('dok_skpd', 'like', "%{$searchValue}%")
             ->orWhereHas('skpd', function ($qSkpd) use ($searchValue) {
               $qSkpd->where('opd_nama', 'like', "%{$searchValue}%")
-                    ->orWhere('opd_kode', 'like', "%{$searchValue}%");
+                ->orWhere('opd_kode', 'like', "%{$searchValue}%");
             });
         });
       }
@@ -82,7 +82,7 @@ class DokumenController extends Controller
           $skpdHtml = '
             <div class="d-flex flex-column">
               <span class="fw-semibold text-dark text-wrap" style="max-width: 250px;">' . e($dok->skpd->opd_nama) . '</span>
-              <small class="text-muted"><i class="icon-base bx bx-buildings me-1"></i>Kode: ' . e($dok->dok_skpd) . '</small>
+              <small class="text-muted"><i class="icon-base bx bx-calendar me-1"></i>' . e($dok->dok_status == 1 ? date('d/m/Y H:i', strtotime($dok->dok_tanggal_verif)) : ' - ') . '</small>
             </div>
           ';
         } else {
@@ -100,7 +100,7 @@ class DokumenController extends Controller
                 ' . e($fileName) . '
               </a>
               <br>
-              <small class="text-muted"><a href="' . $fileUrl . '" download class="text-secondary"><i class="icon-base bx bx-download me-1"></i>Unduh</a></small>
+              <small class="text-muted"><a href="' . $fileUrl . '" target="_blank" rel="noopener noreferrer" class="text-secondary"><i class="icon-base bx bx-show me-1"></i>Lihat</a></small>
             </div>
           </div>
         ';
@@ -206,7 +206,7 @@ class DokumenController extends Controller
 
     // Validasi input
     $rules = [
-      'dok_file' => ['required', 'file', 'mimes:pdf', 'max:20480'], // Max 20MB PDF
+      'dok_file' => ['required', 'file', 'mimes:pdf', 'max:2048'], // Max 20MB PDF
     ];
 
     if ($isAdmin) {
@@ -217,7 +217,7 @@ class DokumenController extends Controller
       'dok_file.required' => 'File dokumen PDF wajib diunggah.',
       'dok_file.file' => 'Berkas yang diunggah harus berupa file.',
       'dok_file.mimes' => 'Format file harus berupa PDF (.pdf).',
-      'dok_file.max' => 'Ukuran file PDF maksimal 20 MB.',
+      'dok_file.max' => 'Ukuran file PDF maksimal 2 MB.',
       'dok_skpd.required' => 'Silakan pilih SKPD pengunggah dokumen.',
     ];
 
@@ -350,6 +350,7 @@ class DokumenController extends Controller
 
     $dokumen->update([
       'dok_status' => $validated['status'],
+      'dok_tanggal_verif' => now(),
       'dok_updated_at' => now(),
       'dok_updated_by' => $currentUser->id,
     ]);

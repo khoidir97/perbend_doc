@@ -7,6 +7,12 @@
       "slug": "dashboard"
     },
     {
+      "url": "dokumen",
+      "name": "Data Dokumen",
+      "icon": "menu-icon icon-base bx bx-file",
+      "slug": "dokumen"
+    },
+    {
       "url": "users",
       "name": "Manajemen User",
       "icon": "menu-icon icon-base bx bx-user",
@@ -19,12 +25,6 @@
       "icon": "menu-icon icon-base bx bx-buildings",
       "slug": "skpd",
       "adminOnly": true
-    },
-    {
-      "url": "dokumen",
-      "name": "Data Dokumen",
-      "icon": "menu-icon icon-base bx bx-file",
-      "slug": "dokumen"
     }
   ]
 }

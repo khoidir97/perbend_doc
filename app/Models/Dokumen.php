@@ -17,6 +17,7 @@ class Dokumen extends Model
         'dok_skpd',
         'dok_file',
         'dok_status',
+        'dok_tanggal_verif',
         'dok_created_at',
         'dok_created_by',
         'dok_updated_at',

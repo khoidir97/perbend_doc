@@ -1,10 +1,10 @@
 <?php
 // Variables
 return [
-  "creatorName" => "ThemeSelection",
-  "creatorUrl" => "https://themeselection.com",
-  "templateName" => "sneat",
-  "templateSuffix" => "Sneat Bootstrap Dashboard FREE",
+  "creatorName" => "BPKAD Kota Pekanbaru",
+  "creatorUrl" => "https://bpkad.pekanbaru.go.id",
+  "templateName" => "Doc Perbend",
+  "templateSuffix" => "Doc - Perbend",
   "templateVersion" => "2.0.0",
   "templateFree" => true,
   "templateDescription" => "Most Powerful & Comprehensive Bootstrap 5 + Laravel HTML Admin Dashboard Template built for developers!",

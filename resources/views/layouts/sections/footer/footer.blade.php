@@ -10,7 +10,7 @@
                 ©
                 <script>
                     document.write(new Date().getFullYear())
-                </script>, made with ❤️ by <a
+                </script>, All right reserved <a
                     href="{{ (!empty(config('variables.creatorUrl')) ? config('variables.creatorUrl') : '') }}"
                     target="_blank"
                     class="footer-link">{{ (!empty(config('variables.creatorName')) ? config('variables.creatorName') : '') }}</a>

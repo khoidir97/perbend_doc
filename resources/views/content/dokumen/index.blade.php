@@ -5,6 +5,8 @@
 @section('page-style')
     <!-- DataTables Bootstrap 5 CSS -->
     <link rel="stylesheet" href="{{ asset('assets/css/dataTables.bootstrap5.min.css') }}" />
+    <!-- Select2 (SearchableSelect) CSS -->
+    @include('_partials.searchable-select.styles')
     <style>
         /* Styling agar DataTable serasi dengan tema Sneat */
         .dataTables_wrapper .dataTables_paginate .paginate_button {
@@ -146,14 +148,12 @@
                             <div class="mb-3">
                                 <label for="create_dok_skpd" class="form-label">SKPD / OPD Pemilik Dokumen <span
                                         class="text-danger">*</span></label>
-                                <select class="form-select" id="create_dok_skpd" name="dok_skpd" required>
-                                    <option value="">-- Pilih SKPD / OPD --</option>
-                                    @foreach ($skpdList as $skpd)
-                                        <option value="{{ $skpd->opd_kode }}">
-                                            [{{ $skpd->opd_kode }}] {{ $skpd->opd_nama }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <x-select2 id="create_dok_skpd" name="dok_skpd" :options="$skpdList"
+                                    value-field="opd_kode" label-field="opd_nama" code-field="opd_kode"
+                                    placeholder="-- Cari / Pilih SKPD / OPD --"
+                                    search-placeholder="Ketik kode atau nama SKPD..."
+                                    no-results="SKPD tidak ditemukan" required />
+                                <small class="text-muted">Ketik kode atau nama SKPD untuk mencari.</small>
                             </div>
                         @else
                             <div class="mb-3">
@@ -214,14 +214,12 @@
                             <div class="mb-3">
                                 <label for="edit_dok_skpd" class="form-label">SKPD / OPD <span
                                         class="text-danger">*</span></label>
-                                <select class="form-select" id="edit_dok_skpd" name="dok_skpd" required>
-                                    <option value="">-- Pilih SKPD / OPD --</option>
-                                    @foreach ($skpdList as $skpd)
-                                        <option value="{{ $skpd->opd_kode }}">
-                                            [{{ $skpd->opd_kode }}] {{ $skpd->opd_nama }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <x-select2 id="edit_dok_skpd" name="dok_skpd" :options="$skpdList"
+                                    value-field="opd_kode" label-field="opd_nama" code-field="opd_kode"
+                                    placeholder="-- Cari / Pilih SKPD / OPD --"
+                                    search-placeholder="Ketik kode atau nama SKPD..."
+                                    no-results="SKPD tidak ditemukan" required />
+                                <small class="text-muted">Ketik kode atau nama SKPD untuk mencari.</small>
                             </div>
                         @endif
 
@@ -291,6 +289,8 @@
     <!-- DataTables JS & Bootstrap 5 Integration -->
     <script src="{{ asset('assets/js/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('assets/js/dataTables.bootstrap5.min.js') }}"></script>
+    <!-- Select2 (SearchableSelect) JS -->
+    @include('_partials.searchable-select.scripts')
 
     <script>
         jQuery(document).ready(function ($) {
@@ -409,8 +409,11 @@
             const editModal = new bootstrap.Modal(document.getElementById('editDokumenModal'));
             const deleteModal = new bootstrap.Modal(document.getElementById('deleteDokumenModal'));
 
+            // Dropdown SKPD: diinisialisasi otomatis oleh SearchableSelect (assets/js/searchable-select.js)
+
             $('#createDokumenModal').on('show.bs.modal', function () {
                 $('#createDokumenForm')[0].reset();
+                SearchableSelect.reset('#create_dok_skpd');
                 clearFormErrors($('#createDokumenForm'));
             });
 
@@ -434,6 +437,7 @@
                     success: function (res) {
                         createModal.hide();
                         $form[0].reset();
+                        SearchableSelect.reset('#create_dok_skpd');
                         table.ajax.reload(null, false);
                         showNotification('success', res.message || 'Dokumen berhasil diunggah!');
                     },
@@ -462,7 +466,7 @@
                 $('#current_file_name').text(fileName);
                 $('#edit_dok_file').val('');
                 if ($('#edit_dok_skpd').length) {
-                    $('#edit_dok_skpd').val(skpd);
+                    $('#edit_dok_skpd').val(skpd).trigger('change');
                 }
 
                 editModal.show();

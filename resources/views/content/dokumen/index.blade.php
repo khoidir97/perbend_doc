@@ -4,7 +4,7 @@
 
 @section('page-style')
     <!-- DataTables Bootstrap 5 CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="{{ asset('assets/css/dataTables.bootstrap5.min.css') }}" />
     <style>
         /* Styling agar DataTable serasi dengan tema Sneat */
         .dataTables_wrapper .dataTables_paginate .paginate_button {
@@ -287,10 +287,10 @@
 
 @section('page-script')
     <!-- Memastikan jQuery selalu tersedia untuk DataTables -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="{{ asset('assets/js/jquery-3.7.1.min.js') }}"></script>
     <!-- DataTables JS & Bootstrap 5 Integration -->
-    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script src="{{ asset('assets/js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('assets/js/dataTables.bootstrap5.min.js') }}"></script>
 
     <script>
         jQuery(document).ready(function ($) {

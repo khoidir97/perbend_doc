@@ -238,7 +238,7 @@
                                     class="text-muted">(Kosongkan jika tidak ingin mengganti file)</small></label>
                             <input type="file" class="form-control" id="edit_dok_file" name="dok_file"
                                 accept=".pdf,application/pdf">
-                            <small class="text-muted">Format <strong>.PDF</strong>, maksimal <strong>20 MB</strong>.</small>
+                            <small class="text-muted">Format <strong>.PDF</strong>, maksimal <strong>2 MB</strong>.</small>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -301,7 +301,6 @@
                     'Accept': 'application/json'
                 }
             });
-
             // Inisialisasi Server-Side DataTable Dokumen
             const table = $('#dokumenTable').DataTable({
                 processing: true,

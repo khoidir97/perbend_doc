@@ -68,9 +68,10 @@
                                 <th style="width: 50px;">No</th>
                                 <th>Nama / Username</th>
                                 <th>Email</th>
-                                <th style="width: 100px;">Role</th>
+                                <th style="width: 90px;">Role</th>
                                 <th>SKPD / OPD</th>
-                                <th style="width: 110px;" class="text-center">Aksi</th>
+                                <th>Satuan Kerja (Satker)</th>
+                                <th style="width: 100px;" class="text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -132,6 +133,17 @@
                                 no-results="SKPD tidak ditemukan" />
                             <small class="text-muted">Pilih unit kerja SKPD dari relasi `users.kd_skpd =
                                 skpd.opd_kode`.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="create_kd_satker" class="form-label">Satuan Kerja (Satker)</label>
+                            <select class="form-select" id="create_kd_satker" name="kd_satker"
+                                data-searchable-select
+                                data-placeholder="-- Pilih SKPD terlebih dahulu --"
+                                data-search-placeholder="Ketik nama atau kode satker..."
+                                data-no-results="Satker tidak ditemukan">
+                                <option value=""></option>
+                            </select>
+                            <small class="text-muted">Pilihan Satker disaring otomatis berdasarkan SKPD yang dipilih (opsional).</small>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -198,6 +210,17 @@
                                 no-results="SKPD tidak ditemukan" />
                             <small class="text-muted">Pilih unit kerja SKPD dari relasi `users.kd_skpd =
                                 skpd.opd_kode`.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_kd_satker" class="form-label">Satuan Kerja (Satker)</label>
+                            <select class="form-select" id="edit_kd_satker" name="kd_satker"
+                                data-searchable-select
+                                data-placeholder="-- Pilih SKPD terlebih dahulu --"
+                                data-search-placeholder="Ketik nama atau kode satker..."
+                                data-no-results="Satker tidak ditemukan">
+                                <option value=""></option>
+                            </select>
+                            <small class="text-muted">Pilihan Satker disaring otomatis berdasarkan SKPD yang dipilih (opsional).</small>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -280,7 +303,8 @@
                     { data: 'name', name: 'name' },
                     { data: 'email', name: 'email' },
                     { data: 'role', name: 'role' },
-                    { data: 'skpd', name: 'skpd' },
+                    { data: 'skpd', name: 'kd_skpd' },
+                    { data: 'satker', name: 'kd_satker' },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-center' }
                 ],
                 order: [[1, 'asc']],
@@ -340,12 +364,76 @@
             const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
             const deleteModal = new bootstrap.Modal(document.getElementById('deleteUserModal'));
 
-            // Dropdown SKPD: diinisialisasi otomatis oleh SearchableSelect (assets/js/searchable-select.js)
+            // Helper AJAX Chained Dropdown SKPD -> Satker pada User Modal
+            function loadUserSatkerOptions($selectSatker, kdSkpd, selectedSatkerKode = null) {
+                SearchableSelect.destroy($selectSatker);
+                $selectSatker.empty().append('<option value=""></option>');
+
+                if (!kdSkpd) {
+                    $selectSatker.attr('data-placeholder', '-- Pilih SKPD terlebih dahulu --');
+                    SearchableSelect.init($selectSatker);
+                    return;
+                }
+
+                $selectSatker.attr('data-placeholder', '-- Memuat Satker... --');
+                SearchableSelect.init($selectSatker);
+
+                $.ajax({
+                    url: "{{ route('pegawai.satker-by-skpd') }}",
+                    type: "GET",
+                    data: { kd_skpd: kdSkpd },
+                    success: function (data) {
+                        SearchableSelect.destroy($selectSatker);
+                        $selectSatker.empty().append('<option value=""></option>');
+
+                        if (data && data.length > 0) {
+                            $selectSatker.attr('data-placeholder', '-- Pilih Satker (Opsional) --');
+                            $.each(data, function (i, item) {
+                                const $opt = $('<option>')
+                                    .val(item.stk_kode_satker)
+                                    .attr('data-code', item.stk_kode_satker)
+                                    .attr('data-label', item.stk_nama)
+                                    .text((item.stk_kode_satker ? '[' + item.stk_kode_satker + '] ' : '') + item.stk_nama);
+
+                                if (selectedSatkerKode && String(selectedSatkerKode) === String(item.stk_kode_satker)) {
+                                    $opt.prop('selected', true);
+                                }
+                                $selectSatker.append($opt);
+                            });
+                        } else {
+                            $selectSatker.attr('data-placeholder', '-- Tidak ada Satker di SKPD ini --');
+                        }
+
+                        SearchableSelect.init($selectSatker);
+                        if (selectedSatkerKode) {
+                            SearchableSelect.setValue($selectSatker, selectedSatkerKode);
+                        }
+                    },
+                    error: function () {
+                        SearchableSelect.destroy($selectSatker);
+                        $selectSatker.attr('data-placeholder', '-- Gagal memuat data Satker --');
+                        SearchableSelect.init($selectSatker);
+                    }
+                });
+            }
+
+            // Event saat SKPD berubah di Form Tambah User
+            $('#create_kd_skpd').on('change', function () {
+                const kdSkpd = $(this).val();
+                loadUserSatkerOptions($('#create_kd_satker'), kdSkpd);
+            });
+
+            // Event saat SKPD berubah di Form Edit User
+            $('#edit_kd_skpd').on('change', function () {
+                const kdSkpd = $(this).val();
+                loadUserSatkerOptions($('#edit_kd_satker'), kdSkpd);
+            });
 
             // Reset create form saat modal dibuka
             $('#createUserModal').on('show.bs.modal', function () {
                 $('#createUserForm')[0].reset();
                 SearchableSelect.reset('#create_kd_skpd');
+                loadUserSatkerOptions($('#create_kd_satker'), null);
                 clearFormErrors($('#createUserForm'));
             });
 
@@ -366,6 +454,7 @@
                         createModal.hide();
                         $form[0].reset();
                         SearchableSelect.reset('#create_kd_skpd');
+                        loadUserSatkerOptions($('#create_kd_satker'), null);
                         table.ajax.reload(null, false); // Reload tabel tanpa reset halaman
                         showNotification('success', res.message || 'User berhasil ditambahkan!');
                     },
@@ -390,6 +479,7 @@
                 const email = $(this).data('email');
                 const role = $(this).data('role');
                 const kdSkpd = $(this).data('kd_skpd');
+                const kdSatker = $(this).data('kd_satker');
 
                 clearFormErrors($('#editUserForm'));
                 $('#edit_user_id').val(id);
@@ -398,6 +488,7 @@
                 $('#edit_password').val('');
                 $('#edit_role').val(role !== undefined && role !== null ? role : '0');
                 SearchableSelect.setValue('#edit_kd_skpd', kdSkpd);
+                loadUserSatkerOptions($('#edit_kd_satker'), kdSkpd, kdSatker);
 
                 editModal.show();
             });

@@ -114,6 +114,7 @@
                             <tr>
                                 <th style="width: 45px;">No</th>
                                 <th>SKPD / OPD</th>
+                                <th>Pegawai</th>
                                 <th>File Dokumen (PDF)</th>
                                 <th style="width: 140px;">Status</th>
                                 <th style="width: 130px;">Tgl Upload</th>
@@ -148,12 +149,22 @@
                             <div class="mb-3">
                                 <label for="create_dok_skpd" class="form-label">SKPD / OPD Pemilik Dokumen <span
                                         class="text-danger">*</span></label>
-                                <x-select2 id="create_dok_skpd" name="dok_skpd" :options="$skpdList"
-                                    value-field="opd_kode" label-field="opd_nama" code-field="opd_kode"
-                                    placeholder="-- Cari / Pilih SKPD / OPD --"
-                                    search-placeholder="Ketik kode atau nama SKPD..."
-                                    no-results="SKPD tidak ditemukan" required />
+                                <x-select2 id="create_dok_skpd" name="dok_skpd" :options="$skpdList" value-field="opd_kode"
+                                    label-field="opd_nama" code-field="opd_kode" placeholder="-- Cari / Pilih SKPD / OPD --"
+                                    search-placeholder="Ketik kode atau nama SKPD..." no-results="SKPD tidak ditemukan"
+                                    required />
                                 <small class="text-muted">Ketik kode atau nama SKPD untuk mencari.</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="create_dok_kd_satker" class="form-label">Satuan Kerja (Satker)</label>
+                                <select class="form-select" id="create_dok_kd_satker" name="dok_kd_satker"
+                                    data-searchable-select data-placeholder="-- Pilih SKPD terlebih dahulu --"
+                                    data-search-placeholder="Ketik nama atau kode satker..."
+                                    data-no-results="Satker tidak ditemukan">
+                                    <option value=""></option>
+                                </select>
+                                <small class="text-muted">Pilihan Satker disaring otomatis berdasarkan SKPD.</small>
                             </div>
                         @else
                             <div class="mb-3">
@@ -163,7 +174,46 @@
                                     readonly disabled>
                                 <small class="text-muted">Dokumen otomatis diasosiasikan ke SKPD Anda.</small>
                             </div>
+
+                            @if (!empty($currentUser->kd_satker))
+                                <div class="mb-3">
+                                    <label class="form-label">Satuan Kerja (Satker)</label>
+                                    <input type="text" class="form-control"
+                                        value="[{{ trim($currentUser->kd_satker) }}] {{ $currentUser->satker->stk_nama ?? 'Satker Anda' }}"
+                                        readonly disabled>
+                                    <input type="hidden" name="dok_kd_satker" value="{{ trim($currentUser->kd_satker) }}">
+                                    <small class="text-muted">Dokumen otomatis diasosiasikan ke Satker Anda.</small>
+                                </div>
+                            @else
+                                <div class="mb-3">
+                                    <label for="create_dok_kd_satker" class="form-label">Satuan Kerja (Satker)</label>
+                                    <x-select2 id="create_dok_kd_satker" name="dok_kd_satker" :options="$userSatkerList"
+                                        value-field="stk_kode_satker" label-field="stk_nama" code-field="stk_kode_satker"
+                                        :selected="optional($userSatkerList->first())->stk_kode_satker"
+                                        placeholder="-- Pilih Satker (Opsional) --"
+                                        search-placeholder="Ketik nama atau kode satker..." no-results="Satker tidak ditemukan" />
+                                    <small class="text-muted">Pilih Satker di bawah naungan SKPD Anda (opsional).</small>
+                                </div>
+                            @endif
                         @endif
+
+                        <div class="mb-3">
+                            <label for="create_dok_pgw_id" class="form-label">Pegawai / ASN</label>
+                            @if (!$isAdmin)
+                                <x-select2 id="create_dok_pgw_id" name="dok_pgw_id" :options="$userPegawaiList"
+                                    value-field="pgw_id" label-field="pgw_nama" code-field="pgw_nip"
+                                    placeholder="-- Pilih Pegawai (Opsional) --"
+                                    search-placeholder="Ketik NIP atau nama pegawai..." no-results="Pegawai tidak ditemukan" />
+                            @else
+                                <select class="form-select" id="create_dok_pgw_id" name="dok_pgw_id" data-searchable-select
+                                    data-placeholder="-- Pilih SKPD terlebih dahulu --"
+                                    data-search-placeholder="Ketik NIP atau nama pegawai..."
+                                    data-no-results="Pegawai tidak ditemukan">
+                                    <option value=""></option>
+                                </select>
+                            @endif
+                            <small class="text-muted">Pilih pegawai bersangkutan berdasarkan SKPD.</small>
+                        </div>
 
                         <div class="mb-3">
                             <label for="create_dok_file" class="form-label">Pilih Berkas PDF <span
@@ -214,14 +264,55 @@
                             <div class="mb-3">
                                 <label for="edit_dok_skpd" class="form-label">SKPD / OPD <span
                                         class="text-danger">*</span></label>
-                                <x-select2 id="edit_dok_skpd" name="dok_skpd" :options="$skpdList"
-                                    value-field="opd_kode" label-field="opd_nama" code-field="opd_kode"
-                                    placeholder="-- Cari / Pilih SKPD / OPD --"
-                                    search-placeholder="Ketik kode atau nama SKPD..."
-                                    no-results="SKPD tidak ditemukan" required />
+                                <x-select2 id="edit_dok_skpd" name="dok_skpd" :options="$skpdList" value-field="opd_kode"
+                                    label-field="opd_nama" code-field="opd_kode" placeholder="-- Cari / Pilih SKPD / OPD --"
+                                    search-placeholder="Ketik kode atau nama SKPD..." no-results="SKPD tidak ditemukan"
+                                    required />
                                 <small class="text-muted">Ketik kode atau nama SKPD untuk mencari.</small>
                             </div>
+
+                            <div class="mb-3">
+                                <label for="edit_dok_kd_satker" class="form-label">Satuan Kerja (Satker)</label>
+                                <select class="form-select" id="edit_dok_kd_satker" name="dok_kd_satker" data-searchable-select
+                                    data-placeholder="-- Pilih SKPD terlebih dahulu --"
+                                    data-search-placeholder="Ketik nama atau kode satker..."
+                                    data-no-results="Satker tidak ditemukan">
+                                    <option value=""></option>
+                                </select>
+                                <small class="text-muted">Pilihan Satker disaring otomatis berdasarkan SKPD.</small>
+                            </div>
+                        @else
+                            @if (!empty($currentUser->kd_satker))
+                                <input type="hidden" name="dok_kd_satker" value="{{ trim($currentUser->kd_satker) }}">
+                            @else
+                                <div class="mb-3">
+                                    <label for="edit_dok_kd_satker" class="form-label">Satuan Kerja (Satker)</label>
+                                    <x-select2 id="edit_dok_kd_satker" name="dok_kd_satker" :options="$userSatkerList"
+                                        value-field="stk_kode_satker" label-field="stk_nama" code-field="stk_kode_satker"
+                                        placeholder="-- Pilih Satker (Opsional) --"
+                                        search-placeholder="Ketik nama atau kode satker..." no-results="Satker tidak ditemukan" />
+                                    <small class="text-muted">Pilih Satker di bawah naungan SKPD Anda (opsional).</small>
+                                </div>
+                            @endif
                         @endif
+
+                        <div class="mb-3">
+                            <label for="edit_dok_pgw_id" class="form-label">Pegawai / ASN</label>
+                            @if (!$isAdmin)
+                                <x-select2 id="edit_dok_pgw_id" name="dok_pgw_id" :options="$userPegawaiList"
+                                    value-field="pgw_id" label-field="pgw_nama" code-field="pgw_nip"
+                                    placeholder="-- Pilih Pegawai (Opsional) --"
+                                    search-placeholder="Ketik NIP atau nama pegawai..." no-results="Pegawai tidak ditemukan" />
+                            @else
+                                <select class="form-select" id="edit_dok_pgw_id" name="dok_pgw_id" data-searchable-select
+                                    data-placeholder="-- Pilih SKPD terlebih dahulu --"
+                                    data-search-placeholder="Ketik NIP atau nama pegawai..."
+                                    data-no-results="Pegawai tidak ditemukan">
+                                    <option value=""></option>
+                                </select>
+                            @endif
+                            <small class="text-muted">Pilih pegawai bersangkutan berdasarkan SKPD.</small>
+                        </div>
 
                         <div class="mb-3">
                             <label class="form-label">File PDF Saat Ini:</label>
@@ -318,6 +409,7 @@
                 columns: [
                     { data: 'no', name: 'no', orderable: false, searchable: false, className: 'text-center' },
                     { data: 'skpd', name: 'dok_skpd' },
+                    { data: 'pegawai', name: 'dok_pgw_id' },
                     { data: 'file', name: 'dok_file' },
                     { data: 'status', name: 'dok_status' },
                     { data: 'created_at', name: 'dok_created_at' },
@@ -409,11 +501,176 @@
             const editModal = new bootstrap.Modal(document.getElementById('editDokumenModal'));
             const deleteModal = new bootstrap.Modal(document.getElementById('deleteDokumenModal'));
 
-            // Dropdown SKPD: diinisialisasi otomatis oleh SearchableSelect (assets/js/searchable-select.js)
+            // Helper untuk memuat opsi Satker berdasarkan SKPD via AJAX
+            function loadDokumenSatkerOptions($selectSatker, kdSkpd, selectedSatkerKode = null) {
+                if (!$selectSatker.length) return;
+                SearchableSelect.destroy($selectSatker);
+                $selectSatker.empty().append('<option value=""></option>');
+
+                if (!kdSkpd) {
+                    $selectSatker.attr('data-placeholder', '-- Pilih SKPD terlebih dahulu --');
+                    SearchableSelect.init($selectSatker);
+                    return;
+                }
+
+                $selectSatker.attr('data-placeholder', '-- Memuat Satker... --');
+                SearchableSelect.init($selectSatker);
+
+                $.ajax({
+                    url: "{{ route('pegawai.satker-by-skpd') }}",
+                    type: "GET",
+                    data: { kd_skpd: kdSkpd },
+                    success: function (data) {
+                        SearchableSelect.destroy($selectSatker);
+                        $selectSatker.empty().append('<option value=""></option>');
+
+                        let targetSelected = selectedSatkerKode;
+
+                        if (data && data.length > 0) {
+                            $selectSatker.attr('data-placeholder', '-- Pilih Satker (Opsional) --');
+                            
+                            // Jika belum ada yang terpilih (misal saat tambah baru), auto-select data satker yang pertama
+                            if (!targetSelected) {
+                                targetSelected = data[0].stk_kode_satker;
+                            }
+
+                            $.each(data, function (i, item) {
+                                const $opt = $('<option>')
+                                    .val(item.stk_kode_satker)
+                                    .attr('data-code', item.stk_kode_satker)
+                                    .attr('data-label', item.stk_nama)
+                                    .text((item.stk_kode_satker ? '[' + item.stk_kode_satker + '] ' : '') + item.stk_nama);
+
+                                if (targetSelected && String(targetSelected) === String(item.stk_kode_satker)) {
+                                    $opt.prop('selected', true);
+                                }
+                                $selectSatker.append($opt);
+                            });
+                        } else {
+                            $selectSatker.attr('data-placeholder', '-- Tidak ada Satker di SKPD ini --');
+                        }
+
+                        SearchableSelect.init($selectSatker);
+                        if (targetSelected) {
+                            SearchableSelect.setValue($selectSatker, targetSelected);
+                            // Picu pembaruan daftar pegawai sesuai satker yang auto-terpilih
+                            const $form = $selectSatker.closest('form');
+                            const $pgwSelect = $form.find('select[name="dok_pgw_id"]');
+                            if ($pgwSelect.length) {
+                                loadPegawaiOptions($pgwSelect, kdSkpd, targetSelected);
+                            }
+                        }
+                    },
+                    error: function () {
+                        SearchableSelect.destroy($selectSatker);
+                        $selectSatker.attr('data-placeholder', '-- Gagal memuat data Satker --');
+                        SearchableSelect.init($selectSatker);
+                    }
+                });
+            }
+
+            // Helper untuk memuat opsi Pegawai berdasarkan SKPD dan Satker via AJAX
+            function loadPegawaiOptions($selectPgw, kdSkpd, kdSatker = null, selectedPgwId = null) {
+                // Hancurkan Select2 sementara jika sudah terpasang
+                SearchableSelect.destroy($selectPgw);
+
+                $selectPgw.empty().append('<option value=""></option>');
+
+                if (!kdSkpd) {
+                    $selectPgw.attr('data-placeholder', '-- Pilih SKPD terlebih dahulu --');
+                    SearchableSelect.init($selectPgw);
+                    return;
+                }
+
+                $selectPgw.attr('data-placeholder', '-- Memuat Pegawai... --');
+                SearchableSelect.init($selectPgw);
+
+                $.ajax({
+                    url: "{{ route('dokumen.pegawai-by-skpd') }}",
+                    type: "GET",
+                    data: { 
+                        kd_skpd: kdSkpd,
+                        kd_satker: kdSatker
+                    },
+                    success: function (data) {
+                        SearchableSelect.destroy($selectPgw);
+                        $selectPgw.empty().append('<option value=""></option>');
+
+                        if (data && data.length > 0) {
+                            $selectPgw.attr('data-placeholder', '-- Pilih Pegawai (Opsional) --');
+                            $.each(data, function (i, pgw) {
+                                const $opt = $('<option>')
+                                    .val(pgw.pgw_id)
+                                    .attr('data-code', pgw.pgw_nip || '')
+                                    .attr('data-label', pgw.pgw_nama)
+                                    .text((pgw.pgw_nip ? '[' + pgw.pgw_nip + '] ' : '') + pgw.pgw_nama);
+                                if (selectedPgwId && String(selectedPgwId) === String(pgw.pgw_id)) {
+                                    $opt.prop('selected', true);
+                                }
+                                $selectPgw.append($opt);
+                            });
+                        } else {
+                            $selectPgw.attr('data-placeholder', '-- Tidak ada pegawai di unit ini --');
+                        }
+
+                        SearchableSelect.init($selectPgw);
+                        if (selectedPgwId) {
+                            SearchableSelect.setValue($selectPgw, selectedPgwId);
+                        }
+                    },
+                    error: function () {
+                        SearchableSelect.destroy($selectPgw);
+                        $selectPgw.attr('data-placeholder', '-- Gagal memuat pegawai --');
+                        SearchableSelect.init($selectPgw);
+                    }
+                });
+            }
+
+            // Khusus Admin: Event ketika SKPD di modal tambah berubah
+            $('#create_dok_skpd').on('change', function () {
+                const kdSkpd = $(this).val();
+                loadDokumenSatkerOptions($('#create_dok_kd_satker'), kdSkpd);
+                loadPegawaiOptions($('#create_dok_pgw_id'), kdSkpd, $('#create_dok_kd_satker').val());
+            });
+
+            // Event ketika Satker di modal tambah berubah (Admin maupun OPD)
+            $('#create_dok_kd_satker').on('change', function () {
+                const kdSatker = $(this).val();
+                const kdSkpd = $('#create_dok_skpd').length ? $('#create_dok_skpd').val() : '{{ $currentUser->kd_skpd ?? "" }}';
+                loadPegawaiOptions($('#create_dok_pgw_id'), kdSkpd, kdSatker);
+            });
+
+            // Khusus Admin: Event ketika SKPD di modal edit berubah
+            $('#edit_dok_skpd').on('change', function () {
+                const kdSkpd = $(this).val();
+                loadDokumenSatkerOptions($('#edit_dok_kd_satker'), kdSkpd);
+                loadPegawaiOptions($('#edit_dok_pgw_id'), kdSkpd, $('#edit_dok_kd_satker').val());
+            });
+
+            // Event ketika Satker di modal edit berubah (Admin maupun OPD)
+            $('#edit_dok_kd_satker').on('change', function () {
+                const kdSatker = $(this).val();
+                const kdSkpd = $('#edit_dok_skpd').length ? $('#edit_dok_skpd').val() : '{{ $currentUser->kd_skpd ?? "" }}';
+                loadPegawaiOptions($('#edit_dok_pgw_id'), kdSkpd, kdSatker);
+            });
 
             $('#createDokumenModal').on('show.bs.modal', function () {
                 $('#createDokumenForm')[0].reset();
-                SearchableSelect.reset('#create_dok_skpd');
+                if ($('#create_dok_skpd').length) {
+                    SearchableSelect.reset('#create_dok_skpd');
+                    loadDokumenSatkerOptions($('#create_dok_kd_satker'), null);
+                    loadPegawaiOptions($('#create_dok_pgw_id'), null);
+                } else {
+                    if ($('#create_dok_kd_satker').length) {
+                        const defaultSatker = $('#create_dok_kd_satker option[data-code]:first').val();
+                        if (defaultSatker) {
+                            SearchableSelect.setValue('#create_dok_kd_satker', defaultSatker);
+                        } else {
+                            SearchableSelect.reset('#create_dok_kd_satker');
+                        }
+                    }
+                    SearchableSelect.reset('#create_dok_pgw_id');
+                }
                 clearFormErrors($('#createDokumenForm'));
             });
 
@@ -437,7 +694,16 @@
                     success: function (res) {
                         createModal.hide();
                         $form[0].reset();
-                        SearchableSelect.reset('#create_dok_skpd');
+                        if ($('#create_dok_skpd').length) {
+                            SearchableSelect.reset('#create_dok_skpd');
+                            loadDokumenSatkerOptions($('#create_dok_kd_satker'), null);
+                            loadPegawaiOptions($('#create_dok_pgw_id'), null);
+                        } else {
+                            if ($('#create_dok_kd_satker').length) {
+                                SearchableSelect.reset('#create_dok_kd_satker');
+                            }
+                            SearchableSelect.reset('#create_dok_pgw_id');
+                        }
                         table.ajax.reload(null, false);
                         showNotification('success', res.message || 'Dokumen berhasil diunggah!');
                     },
@@ -459,14 +725,26 @@
             $(document).on('click', '.edit-dokumen-btn', function () {
                 const id = $(this).data('id');
                 const skpd = $(this).data('skpd');
+                const kdSatker = $(this).data('kd-satker');
+                const pgwId = $(this).data('pgw-id');
                 const fileName = $(this).data('file');
 
                 clearFormErrors($('#editDokumenForm'));
                 $('#edit_dok_id').val(id);
                 $('#current_file_name').text(fileName);
                 $('#edit_dok_file').val('');
+
                 if ($('#edit_dok_skpd').length) {
-                    $('#edit_dok_skpd').val(skpd).trigger('change');
+                    SearchableSelect.setValue('#edit_dok_skpd', skpd);
+                    loadDokumenSatkerOptions($('#edit_dok_kd_satker'), skpd, kdSatker);
+                    loadPegawaiOptions($('#edit_dok_pgw_id'), skpd, kdSatker, pgwId);
+                } else {
+                    if ($('#edit_dok_kd_satker').length) {
+                        SearchableSelect.setValue('#edit_dok_kd_satker', kdSatker);
+                    }
+                    const userKdSkpd = '{{ $currentUser->kd_skpd ?? "" }}';
+                    const effectiveSatker = kdSatker || '{{ $currentUser->kd_satker ?? "" }}';
+                    loadPegawaiOptions($('#edit_dok_pgw_id'), userKdSkpd, effectiveSatker, pgwId);
                 }
 
                 editModal.show();

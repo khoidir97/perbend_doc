@@ -24,6 +24,7 @@ class User extends Authenticatable
         'email',
         'password',
         'kd_skpd',
+        'kd_satker',
         'role'
     ];
 
@@ -33,6 +34,14 @@ class User extends Authenticatable
     public function skpd()
     {
         return $this->belongsTo(Skpd::class, 'kd_skpd', 'opd_kode');
+    }
+
+    /**
+     * Relasi ke model Satker
+     */
+    public function satker()
+    {
+        return $this->belongsTo(Satker::class, 'kd_satker', 'stk_kode_satker');
     }
 
     /**

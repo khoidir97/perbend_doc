@@ -17,21 +17,46 @@ $isAdmin = Auth::check() && Auth::user()->role == 0;
     @php
       $activeClass = null;
       $active = 'active open';
-      $currentRouteName = Route::currentRouteName();
+      $currentRouteName = Route::currentRouteName() ?? '';
 
-      if ($currentRouteName === $submenu->slug) {
+      $isCurrentRoute = false;
+      if (!empty($submenu->slug)) {
+          if (is_array($submenu->slug)) {
+              foreach ($submenu->slug as $slug) {
+                  if ($currentRouteName === $slug || str_starts_with($currentRouteName, $slug . '.') || str_starts_with($currentRouteName, $slug . '-')) {
+                      $isCurrentRoute = true;
+                      break;
+                  }
+              }
+          } else {
+              $isCurrentRoute = ($currentRouteName === $submenu->slug) 
+                  || str_starts_with($currentRouteName, $submenu->slug . '.')
+                  || str_starts_with($currentRouteName, $submenu->slug . '-');
+          }
+      }
+
+      if (!$isCurrentRoute && !empty($submenu->url)) {
+          $subPath = trim($submenu->url, '/');
+          if ($subPath === '') {
+              $isCurrentRoute = request()->is('/');
+          } else {
+              $isCurrentRoute = request()->is($subPath) || request()->is($subPath . '/*');
+          }
+      }
+
+      if ($isCurrentRoute) {
           $activeClass = 'active';
       }
       elseif (isset($submenu->submenu)) {
-        if (gettype($submenu->slug) === 'array') {
+        if (is_array($submenu->slug)) {
           foreach($submenu->slug as $slug){
-            if (str_contains($currentRouteName,$slug) and strpos($currentRouteName,$slug) === 0) {
+            if (str_contains($currentRouteName,$slug) && strpos($currentRouteName,$slug) === 0) {
                 $activeClass = $active;
             }
           }
         }
         else{
-          if (str_contains($currentRouteName,$submenu->slug) and strpos($currentRouteName,$submenu->slug) === 0) {
+          if (str_contains($currentRouteName,$submenu->slug) && strpos($currentRouteName,$submenu->slug) === 0) {
             $activeClass = $active;
           }
         }

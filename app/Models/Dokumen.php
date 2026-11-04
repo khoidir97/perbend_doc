@@ -15,6 +15,8 @@ class Dokumen extends Model
 
     protected $fillable = [
         'dok_skpd',
+        'dok_kd_satker',
+        'dok_pgw_id',
         'dok_file',
         'dok_status',
         'dok_tanggal_verif',
@@ -32,6 +34,22 @@ class Dokumen extends Model
     public function skpd()
     {
         return $this->belongsTo(Skpd::class, 'dok_skpd', 'opd_kode');
+    }
+
+    /**
+     * Relasi ke model Satker
+     */
+    public function satker()
+    {
+        return $this->belongsTo(Satker::class, 'dok_kd_satker', 'stk_kode_satker');
+    }
+
+    /**
+     * Relasi ke model Pegawai
+     */
+    public function pegawai()
+    {
+        return $this->belongsTo(Pegawai::class, 'dok_pgw_id', 'pgw_id');
     }
 
     /**

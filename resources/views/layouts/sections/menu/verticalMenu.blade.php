@@ -43,22 +43,49 @@ $isAdmin = Auth::check() && Auth::user()->role == 0;
         $activeClass = null;
         $currentRouteName = Route::currentRouteName() ?? '';
 
-        if ($currentRouteName === $menu->slug) {
-        $activeClass = 'active';
+        // Cek kecocokan berdasarkan Route Name, Pola Route (dokumen.*), atau URL Path
+        $isCurrentRoute = false;
+        if (!empty($menu->slug)) {
+            if (is_array($menu->slug)) {
+                foreach ($menu->slug as $slug) {
+                    if ($currentRouteName === $slug || str_starts_with($currentRouteName, $slug . '.') || str_starts_with($currentRouteName, $slug . '-')) {
+                        $isCurrentRoute = true;
+                        break;
+                    }
+                }
+            } else {
+                $isCurrentRoute = ($currentRouteName === $menu->slug) 
+                    || str_starts_with($currentRouteName, $menu->slug . '.')
+                    || str_starts_with($currentRouteName, $menu->slug . '-');
+            }
+        }
+
+        // Fallback cek kecocokan berdasarkan URL path (misal: /dokumen, /users, /skpd)
+        if (!$isCurrentRoute && !empty($menu->url)) {
+            $menuPath = trim($menu->url, '/');
+            if ($menuPath === '') {
+                $isCurrentRoute = request()->is('/');
+            } else {
+                $isCurrentRoute = request()->is($menuPath) || request()->is($menuPath . '/*');
+            }
+        }
+
+        if ($isCurrentRoute) {
+            $activeClass = 'active';
         }
         elseif (isset($menu->submenu)) {
-        if (gettype($menu->slug) === 'array') {
-        foreach($menu->slug as $slug){
-        if (str_contains($currentRouteName,$slug) and strpos($currentRouteName,$slug) === 0) {
-        $activeClass = 'active open';
-        }
-        }
-        }
-        else{
-        if (str_contains($currentRouteName,$menu->slug) and strpos($currentRouteName,$menu->slug) === 0) {
-        $activeClass = 'active open';
-        }
-        }
+            if (is_array($menu->slug)) {
+                foreach($menu->slug as $slug){
+                    if (str_contains($currentRouteName,$slug) && strpos($currentRouteName,$slug) === 0) {
+                        $activeClass = 'active open';
+                    }
+                }
+            }
+            else{
+                if (str_contains($currentRouteName,$menu->slug) && strpos($currentRouteName,$menu->slug) === 0) {
+                    $activeClass = 'active open';
+                }
+            }
         }
         @endphp
 

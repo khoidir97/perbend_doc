@@ -25,6 +25,13 @@
       "icon": "menu-icon icon-base bx bx-buildings",
       "slug": "skpd",
       "adminOnly": true
+    },
+    {
+      "url": "pegawai",
+      "name": "Data Pegawai",
+      "icon": "menu-icon icon-base bx bx-id-card",
+      "slug": "pegawai",
+      "adminOnly": true
     }
   ]
 }

@@ -22,4 +22,9 @@ class Skpd extends Model
     {
         return $this->hasMany(User::class, 'kd_skpd', 'opd_kode');
     }
+
+    public function satkers()
+    {
+        return $this->hasMany(Satker::class, 'stk_kode_opd', 'opd_kode');
+    }
 }

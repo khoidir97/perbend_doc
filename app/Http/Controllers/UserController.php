@@ -28,6 +28,7 @@ class UserController extends Controller
     if (Auth::user()->role != 0) {
       abort(403, 'Akses terbatas hanya untuk Administrator.');
     }
+
     // Jika request AJAX dari DataTables (server-side pagination)
     if ($request->ajax()) {
       $draw = intval($request->input('draw', 1));
@@ -37,16 +38,21 @@ class UserController extends Controller
 
       $totalRecords = User::count();
 
-      $query = User::with('skpd');
+      $query = User::with(['skpd', 'satker']);
 
       if (!empty($searchValue)) {
         $query->where(function ($q) use ($searchValue) {
           $q->where('name', 'like', "%{$searchValue}%")
             ->orWhere('email', 'like', "%{$searchValue}%")
             ->orWhere('kd_skpd', 'like', "%{$searchValue}%")
+            ->orWhere('kd_satker', 'like', "%{$searchValue}%")
             ->orWhereHas('skpd', function ($qSkpd) use ($searchValue) {
               $qSkpd->where('opd_nama', 'like', "%{$searchValue}%")
                     ->orWhere('opd_kode', 'like', "%{$searchValue}%");
+            })
+            ->orWhereHas('satker', function ($qSatker) use ($searchValue) {
+              $qSatker->where('stk_nama', 'like', "%{$searchValue}%")
+                      ->orWhere('stk_kode_satker', 'like', "%{$searchValue}%");
             });
         });
       }
@@ -67,7 +73,8 @@ class UserController extends Controller
         2 => 'email',
         3 => 'role',
         4 => 'kd_skpd',
-        5 => 'id',
+        5 => 'kd_satker',
+        6 => 'id',
       ];
 
       $orderBy = $columns[$orderColumnIndex] ?? 'id';
@@ -105,18 +112,34 @@ class UserController extends Controller
           $roleHtml = '<span class="badge bg-label-secondary">-</span>';
         }
 
-        // Kolom SKPD
+        // Kolom SKPD & Satker
+        $satkerClean = trim($user->kd_satker ?? '');
+        $satkerNama = $user->satker ? trim($user->satker->stk_nama) : null;
+
         if ($user->skpd) {
           $skpdHtml = '
             <div class="d-flex flex-column">
-              <span class="fw-semibold text-dark text-wrap" style="max-width: 280px;">' . e($user->skpd->opd_nama) . '</span>
-              <small class="text-muted"><i class="icon-base bx bx-buildings me-1"></i>Kode: ' . e($user->kd_skpd) . '</small>
+              <span class="fw-semibold text-dark text-wrap" style="max-width: 250px;">' . e($user->skpd->opd_nama) . '</span>
+              <small class="text-muted"><i class="icon-base bx bx-buildings me-1"></i>Kode OPD: ' . e($user->kd_skpd) . '</small>
             </div>
           ';
         } elseif ($user->kd_skpd) {
           $skpdHtml = '<span class="badge bg-label-warning">Kode: ' . e($user->kd_skpd) . '</span>';
         } else {
-          $skpdHtml = '<span class="badge bg-label-secondary">Semua / Belum Diset</span>';
+          $skpdHtml = '<span class="badge bg-label-secondary">Semua / Administrator</span>';
+        }
+
+        if ($satkerNama) {
+          $satkerHtml = '
+            <div class="d-flex flex-column">
+              <span class="fw-semibold text-dark text-wrap" style="max-width: 220px;">' . e($satkerNama) . '</span>
+              <small class="text-muted"><i class="icon-base bx bx-barcode me-1"></i>' . e($satkerClean) . '</small>
+            </div>
+          ';
+        } elseif (!empty($satkerClean)) {
+          $satkerHtml = '<span class="badge bg-label-secondary">' . e($satkerClean) . '</span>';
+        } else {
+          $satkerHtml = '<span class="text-muted small fst-italic">Semua Satker</span>';
         }
 
         // Tombol Aksi
@@ -142,6 +165,7 @@ class UserController extends Controller
               data-email="' . e($user->email) . '"
               data-role="' . $user->role . '"
               data-kd_skpd="' . e($user->kd_skpd ?? '') . '"
+              data-kd_satker="' . e($satkerClean) . '"
               title="Edit User">
               <i class="icon-base bx bx-edit-alt"></i>
             </button>
@@ -155,6 +179,7 @@ class UserController extends Controller
           'email' => e($user->email),
           'role' => $roleHtml,
           'skpd' => $skpdHtml,
+          'satker' => $satkerHtml,
           'actions' => $actionsHtml,
         ];
       }
@@ -181,6 +206,7 @@ class UserController extends Controller
       'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
       'password' => ['required', 'string', 'min:5'],
       'kd_skpd' => ['nullable', 'string', 'max:100'],
+      'kd_satker' => ['nullable', 'string', 'max:50'],
       'role' => ['required', 'in:0,1'],
     ], [
       'name.required' => 'Nama pengguna (username) wajib diisi.',
@@ -198,6 +224,7 @@ class UserController extends Controller
       'email' => $validated['email'],
       'password' => Hash::make($validated['password']),
       'kd_skpd' => $validated['kd_skpd'] ?: null,
+      'kd_satker' => $validated['kd_satker'] ?: null,
       'role' => $validated['role'],
     ]);
 
@@ -221,6 +248,7 @@ class UserController extends Controller
       'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
       'password' => ['nullable', 'string', 'min:5'],
       'kd_skpd' => ['nullable', 'string', 'max:100'],
+      'kd_satker' => ['nullable', 'string', 'max:50'],
       'role' => ['required', 'in:0,1'],
     ], [
       'name.required' => 'Nama pengguna (username) wajib diisi.',
@@ -235,6 +263,7 @@ class UserController extends Controller
     $user->name = $validated['name'];
     $user->email = $validated['email'];
     $user->kd_skpd = $validated['kd_skpd'] ?: null;
+    $user->kd_satker = $validated['kd_satker'] ?: null;
     $user->role = $validated['role'];
 
     if (!empty($validated['password'])) {

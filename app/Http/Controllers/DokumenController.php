@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Dokumen;
+use App\Models\Pegawai;
+use App\Models\Satker;
 use App\Models\Skpd;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -10,6 +12,46 @@ use Illuminate\Support\Facades\Storage;
 
 class DokumenController extends Controller
 {
+  /**
+   * Mengambil daftar pegawai berdasarkan SKPD (dan opsional Satker)
+   */
+  public function getPegawaiBySkpd(Request $request)
+  {
+    $currentUser = Auth::user();
+    $isAdmin = ($currentUser->role == 0);
+
+    // Tentukan SKPD
+    $kdSkpd = $isAdmin ? $request->input('kd_skpd') : ($currentUser->kd_skpd ?? null);
+
+    if (empty($kdSkpd)) {
+      return response()->json([]);
+    }
+
+    $query = Pegawai::where('pgw_kd_skpd', $kdSkpd)
+      ->whereNull('pgw_deleted_at');
+
+    // Jika bukan admin dan user memiliki kd_satker, batasi ke satkernya
+    if (!$isAdmin && !empty($currentUser->kd_satker)) {
+      $cleanSatker = trim($currentUser->kd_satker);
+      $query->where(function ($q) use ($cleanSatker) {
+        $q->where('pgw_kd_satker', $cleanSatker)
+          ->orWhereRaw('TRIM(pgw_kd_satker) = ?', [$cleanSatker]);
+      });
+    } elseif ($request->filled('kd_satker')) {
+      $cleanSatker = trim($request->input('kd_satker'));
+      $query->where(function ($q) use ($cleanSatker) {
+        $q->where('pgw_kd_satker', $cleanSatker)
+          ->orWhereRaw('TRIM(pgw_kd_satker) = ?', [$cleanSatker]);
+      });
+    }
+
+    $pegawaiList = $query->orderBy('pgw_nama', 'asc')
+      ->select('pgw_id', 'pgw_nip', 'pgw_nama')
+      ->get();
+
+    return response()->json($pegawaiList);
+  }
+
   /**
    * Display a listing of the resource (View or DataTables Server-Side JSON)
    */
@@ -27,24 +69,41 @@ class DokumenController extends Controller
 
       $baseQuery = Dokumen::whereNull('dok_deleted_at');
 
-      // Hak akses: jika bukan admin, batasi hanya dokumen milik SKPD user yang login
+      // Hak akses: jika bukan admin, batasi:
+      // 1. Jika ada kd_satker pada user -> filter berdasarkan dok_kd_satker
+      // 2. Jika tidak ada kd_satker -> filter berdasarkan dok_skpd
       if (!$isAdmin) {
-        $userKdSkpd = $currentUser->kd_skpd ?? '';
-        $baseQuery->where('dok_skpd', $userKdSkpd);
+        $userKdSatker = trim($currentUser->kd_satker ?? '');
+        $userKdSkpd = trim($currentUser->kd_skpd ?? '');
+
+        if (!empty($userKdSatker)) {
+          $baseQuery->where('dok_kd_satker', $userKdSatker);
+        } else {
+          $baseQuery->where('dok_skpd', $userKdSkpd);
+        }
       }
 
       $totalRecords = (clone $baseQuery)->count();
 
-      $query = (clone $baseQuery)->with(['skpd', 'userCreated']);
+      $query = (clone $baseQuery)->with(['skpd', 'satker', 'pegawai', 'userCreated']);
 
       // Filter Pencarian
       if (!empty($searchValue)) {
         $query->where(function ($q) use ($searchValue) {
           $q->where('dok_file', 'like', "%{$searchValue}%")
             ->orWhere('dok_skpd', 'like', "%{$searchValue}%")
+            ->orWhere('dok_kd_satker', 'like', "%{$searchValue}%")
             ->orWhereHas('skpd', function ($qSkpd) use ($searchValue) {
               $qSkpd->where('opd_nama', 'like', "%{$searchValue}%")
                 ->orWhere('opd_kode', 'like', "%{$searchValue}%");
+            })
+            ->orWhereHas('satker', function ($qSatker) use ($searchValue) {
+              $qSatker->where('stk_nama', 'like', "%{$searchValue}%")
+                ->orWhere('stk_kode_satker', 'like', "%{$searchValue}%");
+            })
+            ->orWhereHas('pegawai', function ($qPgw) use ($searchValue) {
+              $qPgw->where('pgw_nama', 'like', "%{$searchValue}%")
+                ->orWhere('pgw_nip', 'like', "%{$searchValue}%");
             });
         });
       }
@@ -62,10 +121,11 @@ class DokumenController extends Controller
       $columns = [
         0 => 'dok_id',
         1 => 'dok_skpd',
-        2 => 'dok_file',
-        3 => 'dok_status',
-        4 => 'dok_created_at',
-        5 => 'dok_id',
+        3 => 'dok_pgw_id',
+        4 => 'dok_file',
+        5 => 'dok_status',
+        6 => 'dok_created_at',
+        7 => 'dok_id',
       ];
 
       $orderBy = $columns[$orderColumnIndex] ?? 'dok_id';
@@ -89,7 +149,35 @@ class DokumenController extends Controller
           $skpdHtml = '<span class="badge bg-label-secondary">Kode: ' . e($dok->dok_skpd ?: '-') . '</span>';
         }
 
-        // 2. Kolom File PDF (Download / Preview)
+        // 2. Kolom Satker
+        $satkerClean = trim($dok->dok_kd_satker ?? '');
+        $satkerNama = $dok->satker ? trim($dok->satker->stk_nama) : null;
+        if ($satkerNama) {
+          $satkerHtml = '
+            <div class="d-flex flex-column">
+              <span class="fw-semibold text-dark text-wrap" style="max-width: 220px;">' . e($satkerNama) . '</span>
+              <small class="text-muted"><i class="icon-base bx bx-barcode me-1"></i>' . e($satkerClean) . '</small>
+            </div>
+          ';
+        } elseif (!empty($satkerClean)) {
+          $satkerHtml = '<span class="badge bg-label-secondary">' . e($satkerClean) . '</span>';
+        } else {
+          $satkerHtml = '<span class="text-muted small">-</span>';
+        }
+
+        // 3. Kolom Pegawai
+        if ($dok->pegawai) {
+          $pegawaiHtml = '
+            <div class="d-flex flex-column">
+              <span class="fw-semibold text-heading">' . e($dok->pegawai->pgw_nama) . '</span>
+              <small class="text-muted"><i class="icon-base bx bx-id-card me-1"></i>NIP: ' . e($dok->pegawai->pgw_nip ?: '-') . '</small>
+            </div>
+          ';
+        } else {
+          $pegawaiHtml = '<span class="text-muted fst-italic small">- Tidak Ada Pegawai -</span>';
+        }
+
+        // 4. Kolom File PDF (Download / Preview)
         $fileUrl = asset('storage/' . $dok->dok_file);
         $fileName = basename($dok->dok_file);
         $fileHtml = '
@@ -105,17 +193,17 @@ class DokumenController extends Controller
           </div>
         ';
 
-        // 3. Kolom Status Verifikasi
+        // 5. Kolom Status Verifikasi
         if ($dok->dok_status == 1) {
           $statusHtml = '<span class="badge bg-label-success"><i class="icon-base bx bx-check-double me-1"></i>Sudah Verifikasi</span>';
         } else {
           $statusHtml = '<span class="badge bg-label-warning"><i class="icon-base bx bx-time-five me-1"></i>Belum Verifikasi</span>';
         }
 
-        // 4. Kolom Waktu Upload
+        // 6. Kolom Waktu Upload
         $waktuHtml = $dok->dok_created_at ? date('d/m/Y H:i', strtotime($dok->dok_created_at)) : '-';
 
-        // 5. Tombol Aksi
+        // 7. Tombol Aksi
         $actionsHtml = '<div class="d-inline-flex gap-1">';
 
         // Tombol Verifikasi (HANYA UNTUK ADMIN)
@@ -150,6 +238,8 @@ class DokumenController extends Controller
               class="btn btn-sm btn-icon btn-outline-primary edit-dokumen-btn"
               data-id="' . $dok->dok_id . '"
               data-skpd="' . e($dok->dok_skpd) . '"
+              data-kd-satker="' . e($satkerClean) . '"
+              data-pgw-id="' . e($dok->dok_pgw_id ?? '') . '"
               data-file="' . e($fileName) . '"
               data-action="' . route('dokumen.update', $dok->dok_id) . '"
               title="Edit Dokumen">
@@ -177,6 +267,8 @@ class DokumenController extends Controller
         $data[] = [
           'no' => $no++,
           'skpd' => $skpdHtml,
+          // 'satker' => $satkerHtml,
+          'pegawai' => $pegawaiHtml,
           'file' => $fileHtml,
           'status' => $statusHtml,
           'created_at' => $waktuHtml,
@@ -193,7 +285,26 @@ class DokumenController extends Controller
     }
 
     $skpdList = Skpd::orderBy('opd_nama', 'asc')->get();
-    return view('content.dokumen.index', compact('skpdList', 'isAdmin', 'currentUser'));
+
+    // Jika user adalah OPD biasa
+    $userSatkerList = collect([]);
+    $userPegawaiList = collect([]);
+
+    if (!$isAdmin && !empty($currentUser->kd_skpd)) {
+      $satkerQ = Satker::where('stk_kode_opd', $currentUser->kd_skpd)->whereNull('stk_deleted_at');
+      if (!empty($currentUser->kd_satker)) {
+        $satkerQ->where('stk_kode_satker', $currentUser->kd_satker);
+      }
+      $userSatkerList = $satkerQ->orderBy('stk_nama', 'asc')->get();
+
+      $pgwQ = Pegawai::where('pgw_kd_skpd', $currentUser->kd_skpd)->whereNull('pgw_deleted_at');
+      if (!empty($currentUser->kd_satker)) {
+        $pgwQ->where('pgw_kd_satker', $currentUser->kd_satker);
+      }
+      $userPegawaiList = $pgwQ->orderBy('pgw_nama', 'asc')->get();
+    }
+
+    return view('content.dokumen.index', compact('skpdList', 'isAdmin', 'currentUser', 'userSatkerList', 'userPegawaiList'));
   }
 
   /**
@@ -206,7 +317,9 @@ class DokumenController extends Controller
 
     // Validasi input
     $rules = [
-      'dok_file' => ['required', 'file', 'mimes:pdf', 'max:2048'], // Max 20MB PDF
+      'dok_file' => ['required', 'file', 'mimes:pdf', 'max:2048'], // Max 2MB PDF
+      'dok_kd_satker' => ['nullable', 'string', 'max:50'],
+      'dok_pgw_id' => ['nullable', 'integer'],
     ];
 
     if ($isAdmin) {
@@ -223,8 +336,9 @@ class DokumenController extends Controller
 
     $validated = $request->validate($rules, $messages);
 
-    // Tentukan SKPD
+    // Tentukan SKPD & Satker
     $kdSkpd = $isAdmin ? $validated['dok_skpd'] : ($currentUser->kd_skpd ?? null);
+    $kdSatker = $isAdmin ? ($validated['dok_kd_satker'] ?? null) : ($currentUser->kd_satker ?? ($validated['dok_kd_satker'] ?? null));
 
     if (empty($kdSkpd)) {
       if ($request->ajax()) {
@@ -241,8 +355,10 @@ class DokumenController extends Controller
     $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
     $filePath = $file->storeAs('dokumen_pdf', $fileName, 'public');
 
-    $dokumen = Dokumen::create([
+    Dokumen::create([
       'dok_skpd' => $kdSkpd,
+      'dok_kd_satker' => $kdSatker ?: null,
+      'dok_pgw_id' => $validated['dok_pgw_id'] ?? null,
       'dok_file' => $filePath,
       'dok_status' => 0, // Default 0 = Belum Verifikasi
       'dok_created_at' => now(),
@@ -260,7 +376,7 @@ class DokumenController extends Controller
   }
 
   /**
-   * Update the specified resource in storage (Ganti File / SKPD via AJAX)
+   * Update the specified resource in storage (Ganti File / SKPD / Satker / Pegawai via AJAX)
    */
   public function update(Request $request, $id)
   {
@@ -271,9 +387,12 @@ class DokumenController extends Controller
 
     // Jika bukan admin, pastikan dokumen miliknya dan belum diverifikasi
     if (!$isAdmin) {
-      if ($dokumen->dok_skpd !== $currentUser->kd_skpd) {
+      if (!empty($currentUser->kd_satker) && $dokumen->dok_kd_satker !== $currentUser->kd_satker) {
+        return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+      } elseif ($dokumen->dok_skpd !== $currentUser->kd_skpd) {
         return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
       }
+
       if ($dokumen->dok_status == 1) {
         return response()->json(['success' => false, 'message' => 'Dokumen sudah diverifikasi dan tidak dapat diubah lagi.'], 422);
       }
@@ -281,6 +400,8 @@ class DokumenController extends Controller
 
     $rules = [
       'dok_file' => ['nullable', 'file', 'mimes:pdf', 'max:20480'],
+      'dok_kd_satker' => ['nullable', 'string', 'max:50'],
+      'dok_pgw_id' => ['nullable', 'integer'],
     ];
 
     if ($isAdmin) {
@@ -296,6 +417,8 @@ class DokumenController extends Controller
     $validated = $request->validate($rules, $messages);
 
     $updateData = [
+      'dok_kd_satker' => $isAdmin ? ($validated['dok_kd_satker'] ?? null) : ($currentUser->kd_satker ?? ($validated['dok_kd_satker'] ?? null)),
+      'dok_pgw_id' => $validated['dok_pgw_id'] ?? null,
       'dok_updated_at' => now(),
       'dok_updated_by' => $currentUser->id,
     ];
@@ -375,9 +498,12 @@ class DokumenController extends Controller
 
     // Jika bukan admin, pastikan dokumen miliknya dan belum diverifikasi
     if (!$isAdmin) {
-      if ($dokumen->dok_skpd !== $currentUser->kd_skpd) {
+      if (!empty($currentUser->kd_satker) && $dokumen->dok_kd_satker !== $currentUser->kd_satker) {
+        return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+      } elseif ($dokumen->dok_skpd !== $currentUser->kd_skpd) {
         return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
       }
+
       if ($dokumen->dok_status == 1) {
         return response()->json(['success' => false, 'message' => 'Dokumen sudah diverifikasi dan tidak dapat dihapus.'], 422);
       }

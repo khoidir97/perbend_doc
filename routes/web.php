@@ -45,6 +45,7 @@ use App\Http\Controllers\form_layouts\HorizontalForm;
 use App\Http\Controllers\tables\Basic as TablesBasic;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SkpdController;
+use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\DokumenController;
 
 // authentication (guest only)
@@ -66,7 +67,12 @@ Route::middleware('auth')->group(function () {
     // SKPD Management CRUD
     Route::resource('skpd', SkpdController::class);
 
+    // Pegawai Management CRUD
+    Route::get('/pegawai/satker-by-skpd', [PegawaiController::class, 'getSatkerBySkpd'])->name('pegawai.satker-by-skpd');
+    Route::resource('pegawai', PegawaiController::class);
+
     // Dokumen Management CRUD
+    Route::get('/dokumen/pegawai-by-skpd', [DokumenController::class, 'getPegawaiBySkpd'])->name('dokumen.pegawai-by-skpd');
     Route::patch('/dokumen/{id}/verifikasi', [DokumenController::class, 'verifikasi'])->name('dokumen.verifikasi');
     Route::resource('dokumen', DokumenController::class);
 

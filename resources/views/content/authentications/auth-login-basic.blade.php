@@ -22,7 +22,7 @@
                             </a>
                         </div>
                         <!-- /Logo -->
-                        <h4 class="mb-1">Welcome to {{ config('variables.templateName') }}! 👋</h4>
+                        <h4 class="mb-1">Welcome to {{ config('variables.templateName') }}!</h4>
                         <p class="mb-6">Please sign-in to your account and start the adventure</p>
 
                         @if ($errors->any())

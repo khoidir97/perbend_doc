@@ -474,6 +474,7 @@ class DokumenController extends Controller
     $dokumen->update([
       'dok_status' => $validated['status'],
       'dok_tanggal_verif' => now(),
+      'dok_verified_by' => $currentUser->id,
       'dok_updated_at' => now(),
       'dok_updated_by' => $currentUser->id,
     ]);

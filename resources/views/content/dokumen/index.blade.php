@@ -501,8 +501,10 @@
             const editModal = new bootstrap.Modal(document.getElementById('editDokumenModal'));
             const deleteModal = new bootstrap.Modal(document.getElementById('deleteDokumenModal'));
 
+            let isSettingEditValues = false;
+
             // Helper untuk memuat opsi Satker berdasarkan SKPD via AJAX
-            function loadDokumenSatkerOptions($selectSatker, kdSkpd, selectedSatkerKode = null) {
+            function loadDokumenSatkerOptions($selectSatker, kdSkpd, selectedSatkerKode = null, selectedPgwId = null) {
                 if (!$selectSatker.length) return;
                 SearchableSelect.destroy($selectSatker);
                 $selectSatker.empty().append('<option value=""></option>');
@@ -553,11 +555,11 @@
                         SearchableSelect.init($selectSatker);
                         if (targetSelected) {
                             SearchableSelect.setValue($selectSatker, targetSelected);
-                            // Picu pembaruan daftar pegawai sesuai satker yang auto-terpilih
+                            // Picu pembaruan daftar pegawai sesuai satker yang auto-terpilih jika tidak dalam mode pengisian modal edit manual
                             const $form = $selectSatker.closest('form');
                             const $pgwSelect = $form.find('select[name="dok_pgw_id"]');
-                            if ($pgwSelect.length) {
-                                loadPegawaiOptions($pgwSelect, kdSkpd, targetSelected);
+                            if ($pgwSelect.length && !isSettingEditValues) {
+                                loadPegawaiOptions($pgwSelect, kdSkpd, targetSelected, selectedPgwId);
                             }
                         }
                     },
@@ -642,6 +644,7 @@
 
             // Khusus Admin: Event ketika SKPD di modal edit berubah
             $('#edit_dok_skpd').on('change', function () {
+                if (isSettingEditValues) return;
                 const kdSkpd = $(this).val();
                 loadDokumenSatkerOptions($('#edit_dok_kd_satker'), kdSkpd);
                 loadPegawaiOptions($('#edit_dok_pgw_id'), kdSkpd, $('#edit_dok_kd_satker').val());
@@ -649,6 +652,7 @@
 
             // Event ketika Satker di modal edit berubah (Admin maupun OPD)
             $('#edit_dok_kd_satker').on('change', function () {
+                if (isSettingEditValues) return;
                 const kdSatker = $(this).val();
                 const kdSkpd = $('#edit_dok_skpd').length ? $('#edit_dok_skpd').val() : '{{ $currentUser->kd_skpd ?? "" }}';
                 loadPegawaiOptions($('#edit_dok_pgw_id'), kdSkpd, kdSatker);
@@ -734,9 +738,11 @@
                 $('#current_file_name').text(fileName);
                 $('#edit_dok_file').val('');
 
+                isSettingEditValues = true;
+
                 if ($('#edit_dok_skpd').length) {
                     SearchableSelect.setValue('#edit_dok_skpd', skpd);
-                    loadDokumenSatkerOptions($('#edit_dok_kd_satker'), skpd, kdSatker);
+                    loadDokumenSatkerOptions($('#edit_dok_kd_satker'), skpd, kdSatker, pgwId);
                     loadPegawaiOptions($('#edit_dok_pgw_id'), skpd, kdSatker, pgwId);
                 } else {
                     if ($('#edit_dok_kd_satker').length) {
@@ -746,6 +752,10 @@
                     const effectiveSatker = kdSatker || '{{ $currentUser->kd_satker ?? "" }}';
                     loadPegawaiOptions($('#edit_dok_pgw_id'), userKdSkpd, effectiveSatker, pgwId);
                 }
+
+                setTimeout(function () {
+                    isSettingEditValues = false;
+                }, 400);
 
                 editModal.show();
             });

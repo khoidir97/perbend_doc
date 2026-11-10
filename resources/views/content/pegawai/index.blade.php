@@ -125,6 +125,16 @@
               </select>
               <small class="text-muted">Pilihan Satker disaring otomatis berdasarkan SKPD yang dipilih.</small>
             </div>
+            <div class="mb-3 form-password-toggle">
+              <label for="create_pgw_password" class="form-label">Password Login Pegawai</label>
+              <div class="input-group input-group-merge">
+                <input type="password" class="form-control" id="create_pgw_password" name="pgw_password"
+                  placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                  aria-describedby="create_pgw_password">
+                <span class="input-group-text cursor-pointer"><i class="icon-base bx bx-hide"></i></span>
+              </div>
+              <small class="text-muted">Password login aplikasi (minimal 6 karakter). Boleh dikosongkan jika belum ingin diset.</small>
+            </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
@@ -182,6 +192,16 @@
                 <option value=""></option>
               </select>
               <small class="text-muted">Pilihan Satker disaring otomatis berdasarkan SKPD yang dipilih.</small>
+            </div>
+            <div class="mb-3 form-password-toggle">
+              <label for="edit_pgw_password" class="form-label">Password Baru <small class="text-muted">(Kosongkan jika tidak ingin mengubah password)</small></label>
+              <div class="input-group input-group-merge">
+                <input type="password" class="form-control" id="edit_pgw_password" name="pgw_password"
+                  placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                  aria-describedby="edit_pgw_password">
+                <span class="input-group-text cursor-pointer"><i class="icon-base bx bx-hide"></i></span>
+              </div>
+              <small class="text-muted">Isi minimal 6 karakter hanya jika ingin mengganti password pegawai ini.</small>
             </div>
           </div>
           <div class="modal-footer">
@@ -391,6 +411,9 @@
         SearchableSelect.reset('#create_pgw_kd_skpd');
         loadSatkerOptions($('#create_pgw_kd_satker'), null);
         clearFormErrors($('#createPegawaiForm'));
+        if (window.Helpers && window.Helpers.initPasswordToggle) {
+          window.Helpers.initPasswordToggle();
+        }
       });
 
       // 1. AJAX: SIMPAN PEGAWAI BARU
@@ -440,8 +463,12 @@
         $('#edit_pgw_id').val(id);
         $('#edit_pgw_nip').val(nip);
         $('#edit_pgw_nama').val(nama);
+        $('#edit_pgw_password').val('');
         SearchableSelect.setValue('#edit_pgw_kd_skpd', kdSkpd);
         loadSatkerOptions($('#edit_pgw_kd_satker'), kdSkpd, kdSatker);
+        if (window.Helpers && window.Helpers.initPasswordToggle) {
+          window.Helpers.initPasswordToggle();
+        }
 
         editModal.show();
       });

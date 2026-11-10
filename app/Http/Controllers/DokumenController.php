@@ -284,27 +284,9 @@ class DokumenController extends Controller
       ]);
     }
 
-    $skpdList = Skpd::orderBy('opd_nama', 'asc')->get();
+    $skpdList = $isAdmin ? Skpd::orderBy('opd_nama', 'asc')->get() : collect([]);
 
-    // Jika user adalah OPD biasa
-    $userSatkerList = collect([]);
-    $userPegawaiList = collect([]);
-
-    if (!$isAdmin && !empty($currentUser->kd_skpd)) {
-      $satkerQ = Satker::where('stk_kode_opd', $currentUser->kd_skpd)->whereNull('stk_deleted_at');
-      if (!empty($currentUser->kd_satker)) {
-        $satkerQ->where('stk_kode_satker', $currentUser->kd_satker);
-      }
-      $userSatkerList = $satkerQ->orderBy('stk_nama', 'asc')->get();
-
-      $pgwQ = Pegawai::where('pgw_kd_skpd', $currentUser->kd_skpd)->whereNull('pgw_deleted_at');
-      if (!empty($currentUser->kd_satker)) {
-        $pgwQ->where('pgw_kd_satker', $currentUser->kd_satker);
-      }
-      $userPegawaiList = $pgwQ->orderBy('pgw_nama', 'asc')->get();
-    }
-
-    return view('content.dokumen.index', compact('skpdList', 'isAdmin', 'currentUser', 'userSatkerList', 'userPegawaiList'));
+    return view('content.dokumen.index', compact('skpdList', 'isAdmin', 'currentUser'));
   }
 
   /**
@@ -336,9 +318,10 @@ class DokumenController extends Controller
 
     $validated = $request->validate($rules, $messages);
 
-    // Tentukan SKPD & Satker
+    // Tentukan SKPD, Satker & Pegawai
     $kdSkpd = $isAdmin ? $validated['dok_skpd'] : ($currentUser->kd_skpd ?? null);
     $kdSatker = $isAdmin ? ($validated['dok_kd_satker'] ?? null) : ($currentUser->kd_satker ?? ($validated['dok_kd_satker'] ?? null));
+    $dokPgwId = $isAdmin ? ($validated['dok_pgw_id'] ?? null) : ($currentUser->pgw_id ?? $currentUser->id);
 
     if (empty($kdSkpd)) {
       if ($request->ajax()) {
@@ -358,7 +341,7 @@ class DokumenController extends Controller
     Dokumen::create([
       'dok_skpd' => $kdSkpd,
       'dok_kd_satker' => $kdSatker ?: null,
-      'dok_pgw_id' => $validated['dok_pgw_id'] ?? null,
+      'dok_pgw_id' => $dokPgwId ?: null,
       'dok_file' => $filePath,
       'dok_status' => 0, // Default 0 = Belum Verifikasi
       'dok_created_at' => now(),
@@ -416,9 +399,11 @@ class DokumenController extends Controller
 
     $validated = $request->validate($rules, $messages);
 
+    $dokPgwId = $isAdmin ? ($validated['dok_pgw_id'] ?? null) : ($currentUser->pgw_id ?? $currentUser->id);
+
     $updateData = [
       'dok_kd_satker' => $isAdmin ? ($validated['dok_kd_satker'] ?? null) : ($currentUser->kd_satker ?? ($validated['dok_kd_satker'] ?? null)),
-      'dok_pgw_id' => $validated['dok_pgw_id'] ?? null,
+      'dok_pgw_id' => $dokPgwId ?: null,
       'dok_updated_at' => now(),
       'dok_updated_by' => $currentUser->id,
     ];

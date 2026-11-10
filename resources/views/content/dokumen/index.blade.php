@@ -166,54 +166,53 @@
                                 </select>
                                 <small class="text-muted">Pilihan Satker disaring otomatis berdasarkan SKPD.</small>
                             </div>
-                        @else
+
                             <div class="mb-3">
-                                <label class="form-label">SKPD Pengunggah</label>
-                                <input type="text" class="form-control"
-                                    value="[{{ $currentUser->kd_skpd }}] {{ $currentUser->skpd->opd_nama ?? 'SKPD Anda' }}"
-                                    readonly disabled>
-                                <small class="text-muted">Dokumen otomatis diasosiasikan ke SKPD Anda.</small>
-                            </div>
-
-                            @if (!empty($currentUser->kd_satker))
-                                <div class="mb-3">
-                                    <label class="form-label">Satuan Kerja (Satker)</label>
-                                    <input type="text" class="form-control"
-                                        value="[{{ trim($currentUser->kd_satker) }}] {{ $currentUser->satker->stk_nama ?? 'Satker Anda' }}"
-                                        readonly disabled>
-                                    <input type="hidden" name="dok_kd_satker" value="{{ trim($currentUser->kd_satker) }}">
-                                    <small class="text-muted">Dokumen otomatis diasosiasikan ke Satker Anda.</small>
-                                </div>
-                            @else
-                                <div class="mb-3">
-                                    <label for="create_dok_kd_satker" class="form-label">Satuan Kerja (Satker)</label>
-                                    <x-select2 id="create_dok_kd_satker" name="dok_kd_satker" :options="$userSatkerList"
-                                        value-field="stk_kode_satker" label-field="stk_nama" code-field="stk_kode_satker"
-                                        :selected="optional($userSatkerList->first())->stk_kode_satker"
-                                        placeholder="-- Pilih Satker (Opsional) --"
-                                        search-placeholder="Ketik nama atau kode satker..." no-results="Satker tidak ditemukan" />
-                                    <small class="text-muted">Pilih Satker di bawah naungan SKPD Anda (opsional).</small>
-                                </div>
-                            @endif
-                        @endif
-
-                        <div class="mb-3">
-                            <label for="create_dok_pgw_id" class="form-label">Pegawai / ASN</label>
-                            @if (!$isAdmin)
-                                <x-select2 id="create_dok_pgw_id" name="dok_pgw_id" :options="$userPegawaiList"
-                                    value-field="pgw_id" label-field="pgw_nama" code-field="pgw_nip"
-                                    placeholder="-- Pilih Pegawai (Opsional) --"
-                                    search-placeholder="Ketik NIP atau nama pegawai..." no-results="Pegawai tidak ditemukan" />
-                            @else
+                                <label for="create_dok_pgw_id" class="form-label">Pegawai / ASN</label>
                                 <select class="form-select" id="create_dok_pgw_id" name="dok_pgw_id" data-searchable-select
                                     data-placeholder="-- Pilih SKPD terlebih dahulu --"
                                     data-search-placeholder="Ketik NIP atau nama pegawai..."
                                     data-no-results="Pegawai tidak ditemukan">
                                     <option value=""></option>
                                 </select>
-                            @endif
-                            <small class="text-muted">Pilih pegawai bersangkutan berdasarkan SKPD.</small>
-                        </div>
+                                <small class="text-muted">Pilih pegawai bersangkutan berdasarkan SKPD.</small>
+                            </div>
+                        @else
+                            {{-- Form Otomatis untuk Pegawai yang Login --}}
+                            <div class="mb-3">
+                                <label class="form-label">SKPD Pengunggah</label>
+                                <input type="text" class="form-control bg-light"
+                                    value="[{{ $currentUser->kd_skpd }}] {{ $currentUser->skpd->opd_nama ?? 'SKPD Anda' }}"
+                                    readonly>
+                                <input type="hidden" name="dok_skpd" value="{{ $currentUser->kd_skpd }}">
+                                <small class="text-muted">Dokumen otomatis diasosiasikan ke SKPD Anda.</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Satuan Kerja (Satker)</label>
+                                @if (!empty($currentUser->kd_satker))
+                                    <input type="text" class="form-control bg-light"
+                                        value="[{{ trim($currentUser->kd_satker) }}] {{ $currentUser->satker->stk_nama ?? 'Satker Anda' }}"
+                                        readonly>
+                                    <input type="hidden" name="dok_kd_satker" value="{{ trim($currentUser->kd_satker) }}">
+                                    <small class="text-muted">Dokumen otomatis diasosiasikan ke Satker Anda.</small>
+                                @else
+                                    <input type="text" class="form-control bg-light"
+                                        value="Kantor Induk SKPD (Tanpa Satker)"
+                                        readonly>
+                                    <small class="text-muted">Dokumen otomatis diasosiasikan ke kantor induk SKPD Anda.</small>
+                                @endif
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Pegawai / Pemilik Dokumen</label>
+                                <input type="text" class="form-control bg-light"
+                                    value="[{{ $currentUser->pgw_nip ?? $currentUser->nip }}] {{ $currentUser->pgw_nama ?? $currentUser->name }}"
+                                    readonly>
+                                <input type="hidden" name="dok_pgw_id" value="{{ $currentUser->pgw_id ?? $currentUser->id }}">
+                                <small class="text-muted">Dokumen otomatis diasosiasikan ke akun Anda.</small>
+                            </div>
+                        @endif
 
                         <div class="mb-3">
                             <label for="create_dok_file" class="form-label">Pilih Berkas PDF <span
@@ -281,38 +280,24 @@
                                 </select>
                                 <small class="text-muted">Pilihan Satker disaring otomatis berdasarkan SKPD.</small>
                             </div>
-                        @else
-                            @if (!empty($currentUser->kd_satker))
-                                <input type="hidden" name="dok_kd_satker" value="{{ trim($currentUser->kd_satker) }}">
-                            @else
-                                <div class="mb-3">
-                                    <label for="edit_dok_kd_satker" class="form-label">Satuan Kerja (Satker)</label>
-                                    <x-select2 id="edit_dok_kd_satker" name="dok_kd_satker" :options="$userSatkerList"
-                                        value-field="stk_kode_satker" label-field="stk_nama" code-field="stk_kode_satker"
-                                        placeholder="-- Pilih Satker (Opsional) --"
-                                        search-placeholder="Ketik nama atau kode satker..." no-results="Satker tidak ditemukan" />
-                                    <small class="text-muted">Pilih Satker di bawah naungan SKPD Anda (opsional).</small>
-                                </div>
-                            @endif
-                        @endif
 
-                        <div class="mb-3">
-                            <label for="edit_dok_pgw_id" class="form-label">Pegawai / ASN</label>
-                            @if (!$isAdmin)
-                                <x-select2 id="edit_dok_pgw_id" name="dok_pgw_id" :options="$userPegawaiList"
-                                    value-field="pgw_id" label-field="pgw_nama" code-field="pgw_nip"
-                                    placeholder="-- Pilih Pegawai (Opsional) --"
-                                    search-placeholder="Ketik NIP atau nama pegawai..." no-results="Pegawai tidak ditemukan" />
-                            @else
+                            <div class="mb-3">
+                                <label for="edit_dok_pgw_id" class="form-label">Pegawai / ASN</label>
                                 <select class="form-select" id="edit_dok_pgw_id" name="dok_pgw_id" data-searchable-select
                                     data-placeholder="-- Pilih SKPD terlebih dahulu --"
                                     data-search-placeholder="Ketik NIP atau nama pegawai..."
                                     data-no-results="Pegawai tidak ditemukan">
                                     <option value=""></option>
                                 </select>
+                                <small class="text-muted">Pilih pegawai bersangkutan berdasarkan SKPD.</small>
+                            </div>
+                        @else
+                            <input type="hidden" name="dok_skpd" value="{{ $currentUser->kd_skpd }}">
+                            @if (!empty($currentUser->kd_satker))
+                                <input type="hidden" name="dok_kd_satker" value="{{ trim($currentUser->kd_satker) }}">
                             @endif
-                            <small class="text-muted">Pilih pegawai bersangkutan berdasarkan SKPD.</small>
-                        </div>
+                            <input type="hidden" id="edit_dok_pgw_id" name="dok_pgw_id" value="{{ $currentUser->pgw_id ?? $currentUser->id }}">
+                        @endif
 
                         <div class="mb-3">
                             <label class="form-label">File PDF Saat Ini:</label>
@@ -505,7 +490,7 @@
 
             // Helper untuk memuat opsi Satker berdasarkan SKPD via AJAX
             function loadDokumenSatkerOptions($selectSatker, kdSkpd, selectedSatkerKode = null, selectedPgwId = null) {
-                if (!$selectSatker.length) return;
+                if (!$selectSatker.length || !$selectSatker.is('select')) return;
                 SearchableSelect.destroy($selectSatker);
                 $selectSatker.empty().append('<option value=""></option>');
 
@@ -573,6 +558,7 @@
 
             // Helper untuk memuat opsi Pegawai berdasarkan SKPD dan Satker via AJAX
             function loadPegawaiOptions($selectPgw, kdSkpd, kdSatker = null, selectedPgwId = null) {
+                if (!$selectPgw || !$selectPgw.length || !$selectPgw.is('select')) return;
                 // Hancurkan Select2 sementara jika sudah terpasang
                 SearchableSelect.destroy($selectPgw);
 
@@ -665,7 +651,7 @@
                     loadDokumenSatkerOptions($('#create_dok_kd_satker'), null);
                     loadPegawaiOptions($('#create_dok_pgw_id'), null);
                 } else {
-                    if ($('#create_dok_kd_satker').length) {
+                    if ($('#create_dok_kd_satker[data-searchable-select]').length) {
                         const defaultSatker = $('#create_dok_kd_satker option[data-code]:first').val();
                         if (defaultSatker) {
                             SearchableSelect.setValue('#create_dok_kd_satker', defaultSatker);
@@ -673,7 +659,9 @@
                             SearchableSelect.reset('#create_dok_kd_satker');
                         }
                     }
-                    SearchableSelect.reset('#create_dok_pgw_id');
+                    if ($('#create_dok_pgw_id[data-searchable-select]').length) {
+                        SearchableSelect.reset('#create_dok_pgw_id');
+                    }
                 }
                 clearFormErrors($('#createDokumenForm'));
             });
@@ -703,10 +691,12 @@
                             loadDokumenSatkerOptions($('#create_dok_kd_satker'), null);
                             loadPegawaiOptions($('#create_dok_pgw_id'), null);
                         } else {
-                            if ($('#create_dok_kd_satker').length) {
+                            if ($('#create_dok_kd_satker[data-searchable-select]').length) {
                                 SearchableSelect.reset('#create_dok_kd_satker');
                             }
-                            SearchableSelect.reset('#create_dok_pgw_id');
+                            if ($('#create_dok_pgw_id[data-searchable-select]').length) {
+                                SearchableSelect.reset('#create_dok_pgw_id');
+                            }
                         }
                         table.ajax.reload(null, false);
                         showNotification('success', res.message || 'Dokumen berhasil diunggah!');
@@ -745,12 +735,14 @@
                     loadDokumenSatkerOptions($('#edit_dok_kd_satker'), skpd, kdSatker, pgwId);
                     loadPegawaiOptions($('#edit_dok_pgw_id'), skpd, kdSatker, pgwId);
                 } else {
-                    if ($('#edit_dok_kd_satker').length) {
+                    if ($('#edit_dok_kd_satker[data-searchable-select]').length) {
                         SearchableSelect.setValue('#edit_dok_kd_satker', kdSatker);
                     }
-                    const userKdSkpd = '{{ $currentUser->kd_skpd ?? "" }}';
-                    const effectiveSatker = kdSatker || '{{ $currentUser->kd_satker ?? "" }}';
-                    loadPegawaiOptions($('#edit_dok_pgw_id'), userKdSkpd, effectiveSatker, pgwId);
+                    if ($('#edit_dok_pgw_id[data-searchable-select]').length) {
+                        const userKdSkpd = '{{ $currentUser->kd_skpd ?? "" }}';
+                        const effectiveSatker = kdSatker || '{{ $currentUser->kd_satker ?? "" }}';
+                        loadPegawaiOptions($('#edit_dok_pgw_id'), userKdSkpd, effectiveSatker, pgwId);
+                    }
                 }
 
                 setTimeout(function () {

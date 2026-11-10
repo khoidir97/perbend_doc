@@ -7,6 +7,7 @@ use App\Models\Satker;
 use App\Models\Skpd;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class PegawaiController extends Controller
 {
@@ -186,10 +187,12 @@ class PegawaiController extends Controller
       'pgw_nama' => ['required', 'string', 'max:255'],
       'pgw_kd_skpd' => ['nullable', 'string', 'max:10'],
       'pgw_kd_satker' => ['nullable', 'string', 'max:50'],
+      'pgw_password' => ['nullable', 'string', 'min:6'],
     ], [
       'pgw_nip.required' => 'NIP Pegawai wajib diisi.',
       'pgw_nip.unique' => 'NIP sudah terdaftar, gunakan NIP lain.',
       'pgw_nama.required' => 'Nama Pegawai wajib diisi.',
+      'pgw_password.min' => 'Password minimal 6 karakter.',
     ]);
 
     $pegawai = Pegawai::create([
@@ -197,6 +200,7 @@ class PegawaiController extends Controller
       'pgw_nama' => $validated['pgw_nama'],
       'pgw_kd_skpd' => $validated['pgw_kd_skpd'] ?? null,
       'pgw_kd_satker' => $validated['pgw_kd_satker'] ?? null,
+      'pgw_password' => !empty($validated['pgw_password']) ? Hash::make($validated['pgw_password']) : null,
       'pgw_created_at' => now(),
       'pgw_created_by' => Auth::id(),
     ]);
@@ -227,20 +231,28 @@ class PegawaiController extends Controller
       'pgw_nama' => ['required', 'string', 'max:255'],
       'pgw_kd_skpd' => ['nullable', 'string', 'max:10'],
       'pgw_kd_satker' => ['nullable', 'string', 'max:50'],
+      'pgw_password' => ['nullable', 'string', 'min:6'],
     ], [
       'pgw_nip.required' => 'NIP Pegawai wajib diisi.',
       'pgw_nip.unique' => 'NIP sudah terdaftar pada pegawai lain.',
       'pgw_nama.required' => 'Nama Pegawai wajib diisi.',
+      'pgw_password.min' => 'Password minimal 6 karakter.',
     ]);
 
-    $pegawai->update([
+    $updateData = [
       'pgw_nip' => $validated['pgw_nip'],
       'pgw_nama' => $validated['pgw_nama'],
       'pgw_kd_skpd' => $validated['pgw_kd_skpd'] ?? null,
       'pgw_kd_satker' => $validated['pgw_kd_satker'] ?? null,
       'pgw_updated_at' => now(),
       'pgw_updated_by' => Auth::id(),
-    ]);
+    ];
+
+    if ($request->filled('pgw_password')) {
+      $updateData['pgw_password'] = Hash::make($validated['pgw_password']);
+    }
+
+    $pegawai->update($updateData);
 
     if ($request->ajax()) {
       return response()->json([

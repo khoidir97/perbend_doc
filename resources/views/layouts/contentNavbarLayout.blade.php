@@ -88,4 +88,7 @@
         </div>
         <!-- / Layout wrapper -->
     </div>
+
+    <!-- Modal Ubah Password Global -->
+    @include('layouts/sections/navbar/modal-ubah-password')
 @endsection

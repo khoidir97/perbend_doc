@@ -132,6 +132,7 @@ Route::middleware('auth')->group(function () {
     // tables
     Route::get('/tables/basic', [TablesBasic::class, 'index'])->name('tables-basic');
 
-    // logout
+    // Ubah Password & Logout
+    Route::post('/change-password', [LoginBasic::class, 'changePassword'])->name('password.change');
     Route::post('/logout', [LoginBasic::class, 'logout'])->name('logout');
 });

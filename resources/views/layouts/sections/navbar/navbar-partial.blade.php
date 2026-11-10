@@ -55,9 +55,13 @@
                     </a>
                 </li>
                 <li>
+                    <a class="dropdown-item cursor-pointer" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#modalUbahPassword">
+                        <i class="icon-base bx bx-key icon-md me-3"></i><span>Ubah Password</span>
+                    </a>
+                </li>
+                <li>
                     <div class="dropdown-divider my-1"></div>
                 </li>
-
 
                 <li>
                     <form method="POST" action="{{ route('logout') }}" id="logout-form">

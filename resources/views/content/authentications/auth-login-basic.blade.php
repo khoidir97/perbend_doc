@@ -39,17 +39,17 @@
                         <form id="formAuthentication" class="mb-6" action="{{ route('login.process') }}" method="POST">
                             @csrf
                             <div class="mb-6">
-                                <label for="name" class="form-label">Username / Name</label>
-                                <input type="text" class="form-control @error('name') is-invalid @enderror" id="name"
-                                    name="name" value="{{ old('name') }}" placeholder="Enter your name" autofocus />
+                                <label for="pgw_nip" class="form-label">NIP</label>
+                                <input type="text" class="form-control @error('pgw_nip') is-invalid @enderror" id="pgw_nip"
+                                    name="pgw_nip" value="{{ old('pgw_nip') }}" placeholder="Masukkan NIP Anda" autofocus />
                             </div>
                             <div class="mb-6 form-password-toggle">
-                                <label class="form-label" for="password">Password</label>
+                                <label class="form-label" for="pgw_password">Password</label>
                                 <div class="input-group input-group-merge">
-                                    <input type="password" id="password"
-                                        class="form-control @error('password') is-invalid @enderror" name="password"
+                                    <input type="password" id="pgw_password"
+                                        class="form-control @error('pgw_password') is-invalid @enderror" name="pgw_password"
                                         placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
-                                        aria-describedby="password" />
+                                        aria-describedby="pgw_password" />
                                     <span class="input-group-text cursor-pointer"><i
                                             class="icon-base bx bx-hide"></i></span>
                                 </div>

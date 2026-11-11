@@ -118,7 +118,7 @@
                                 <th>File Dokumen (PDF)</th>
                                 <th style="width: 140px;">Status</th>
                                 <th style="width: 130px;">Tgl Upload</th>
-                                <th style="width: 130px;" class="text-center">Aksi</th>
+                                <th style="width: 165px;" class="text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -357,6 +357,291 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Extra Large: Pemeliharaan Data Keluarga (KP4 / Tunjangan) -->
+    <div class="modal fade" id="modalDataKeluarga" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
+            <div class="modal-content shadow-lg border-0">
+                <!-- Modal Header -->
+                <div class="modal-header bg-primary text-white py-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="avatar avatar-sm bg-white rounded p-1 text-primary d-flex align-items-center justify-content-center shadow-sm">
+                            <i class="icon-base bx bx-group fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title text-white mb-0 fw-semibold">Pemeliharaan Data Keluarga (KP4)</h5>
+                            <small class="text-white-50">Pengelolaan rincian susunan keluarga dan tunjangan pegawai (Database Kedua)</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body p-4 bg-light">
+                    <!-- 1. Header Info Pegawai Card -->
+                    <div class="card shadow-sm border-0 mb-3">
+                        <div class="card-body p-3">
+                            <div class="row align-items-center g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label text-muted small mb-1 fw-semibold"><i class="icon-base bx bx-id-card me-1 text-primary"></i>NIP Pegawai</label>
+                                    <div class="input-group input-group-merge">
+                                        <input type="text" id="kel_pegawai_nip" class="form-control form-control-sm fw-bold bg-white" placeholder="NIP Pegawai..." readonly />
+                                        <button class="btn btn-sm btn-primary" type="button" id="btnCariNipPegawai" title="Cari Data Pegawai">
+                                            <i class="icon-base bx bx-search-alt"></i> Cari
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label text-muted small mb-1 fw-semibold"><i class="icon-base bx bx-user me-1 text-primary"></i>Nama Pegawai</label>
+                                    <div class="fw-bold text-dark fs-6" id="kel_pegawai_nama">-</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label text-muted small mb-1 fw-semibold"><i class="icon-base bx bx-buildings me-1 text-primary"></i>SKPD / Satker</label>
+                                    <div class="text-secondary small fw-medium" id="kel_pegawai_skpd">-</div>
+                                </div>
+                                <div class="col-md-2 text-md-end">
+                                    <label class="form-label text-muted small mb-1 fw-semibold"><i class="icon-base bx bx-time-five me-1 text-primary"></i>Tgl Update</label>
+                                    <div>
+                                        <span class="badge bg-label-secondary" id="kel_tgl_update">{{ date('d-m-Y H:i:s') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Form Input / Edit Rincian Anggota Keluarga -->
+                    <div class="card shadow-sm border-0 mb-3">
+                        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 fw-bold text-primary">
+                                <i class="icon-base bx bx-user-plus me-1"></i> Rincian Identitas Anggota Keluarga
+                            </h6>
+                            <span class="badge bg-label-primary px-3 py-1" id="badgeFormMode">Mode: Tambah / Edit</span>
+                        </div>
+                        <div class="card-body p-3">
+                            <form id="formInputKeluarga" onsubmit="return false;">
+                                <input type="hidden" id="kel_nip" name="NIP" value="" />
+                                <input type="hidden" id="kel_dok_id" name="dok_id" value="" />
+                                <input type="hidden" id="kel_pgw_id" name="pgw_id" value="" />
+                                <input type="hidden" id="kel_kddati1" name="KDDATI1" value="04" />
+                                <input type="hidden" id="kel_kddati2" name="KDDATI2" value="11" />
+
+                                <!-- Baris 1: Hubungan Keluarga, Gelar Depan, Nama, Gelar Belakang -->
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md-3">
+                                        <label for="kel_hub_keluarga" class="form-label small fw-semibold">Hubungan Keluarga <span class="text-danger">*</span></label>
+                                        <select class="form-select form-select-sm" id="kel_hub_keluarga" name="KDHUBKEL" required>
+                                            <option value="">-- Pilih Hubungan --</option>
+                                            @if(isset($hubkelList) && count($hubkelList) > 0)
+                                                @foreach($hubkelList as $hk)
+                                                    @php
+                                                        $kd = trim($hk->KDHUBKEL);
+                                                        $label = $hk->NMHUBKEL;
+                                                        $kdNum = is_numeric($kd) ? (int) $kd : 0;
+                                                        if ($kdNum >= 11 && $kdNum <= 19) {
+                                                            $anakKe = (int) substr($kd, 1);
+                                                            $label = "ANAK KE {$anakKe}";
+                                                        }
+                                                    @endphp
+                                                    <option value="{{ $kd }}">{{ $kd }} - {{ $label }}</option>
+                                                @endforeach
+                                            @endif
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="kel_gelar_depan" class="form-label small fw-semibold">Gelar Depan</label>
+                                        <input type="text" class="form-control form-control-sm" id="kel_gelar_depan" name="GLRDEPAN" placeholder="Contoh: dr., Drs." maxlength="20" />
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label for="kel_nama" class="form-label small fw-semibold">Nama Lengkap <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control form-control-sm fw-semibold" id="kel_nama" name="NMKEL" placeholder="Masukkan nama lengkap anggota keluarga" maxlength="50" required />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="kel_gelar_belakang" class="form-label small fw-semibold">Gelar Belakang</label>
+                                        <input type="text" class="form-control form-control-sm" id="kel_gelar_belakang" name="GLRBELAKANG" placeholder="Contoh: S.Kom, M.M." maxlength="20" />
+                                    </div>
+                                </div>
+
+                                <!-- Baris 2: Tanggal Lahir, Jenis Kelamin, Status Kawin, Pekerjaan -->
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md-3">
+                                        <label for="kel_tgl_lahir" class="form-label small fw-semibold">Tanggal Lahir (TGLLHR) <span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control form-control-sm" id="kel_tgl_lahir" name="TGLLHR" required />
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="kel_jenis_kelamin" class="form-label small fw-semibold">Jenis Kelamin (KDJENKEL) <span class="text-danger">*</span></label>
+                                        <select class="form-select form-select-sm" id="kel_jenis_kelamin" name="KDJENKEL" required>
+                                            <option value="">-- Pilih Gender --</option>
+                                            <option value="1">1 - Laki-laki</option>
+                                            <option value="2">2 - Perempuan</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="kel_kdstawin" class="form-label small fw-semibold">Status Kawin (kdstawin) <span class="text-danger">*</span></label>
+                                        <select class="form-select form-select-sm" id="kel_kdstawin" name="kdstawin" required>
+                                            <option value="1">1 - Tidak Kawin</option>
+                                            <option value="2">2 - Kawin</option>
+                                            <option value="3">3 - Janda / Duda</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="kel_pekerjaan" class="form-label small fw-semibold">Pekerjaan</label>
+                                        <input type="text" class="form-control form-control-sm" id="kel_pekerjaan" name="PEKERJAAN" placeholder="Contoh: PNS, Pelajar" maxlength="40" />
+                                    </div>
+                                </div>
+
+                                <!-- Baris 3: Bagian Khusus Suami / Istri (ASN & Legalitas Pernikahan) -->
+                                <div class="border rounded p-3 mb-3 bg-white" style="border-left: 4px solid #696cff !important;">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <span class="small fw-bold text-primary">
+                                            <i class="icon-base bx bx-heart me-1"></i> Data Pernikahan & Khusus Suami / Istri (ASN)
+                                        </span>
+                                        <small class="text-danger fw-semibold">*) Lengkapi jika Suami/Istri berstatus ASN</small>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <label for="kel_nip_pasangan" class="form-label small fw-semibold">NIP Istri / Suami</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="text" class="form-control" id="kel_nip_pasangan" name="NIPSUAMIISTRI" placeholder="Ketik NIP Pasangan ASN..." maxlength="18" />
+                                                <button class="btn btn-outline-primary" type="button" id="btnCariNipPasangan">
+                                                    <i class="icon-base bx bx-search me-1"></i> Cari NIP
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="kel_tgl_nikah" class="form-label small fw-semibold">Tanggal Nikah</label>
+                                            <input type="date" class="form-control form-control-sm" id="kel_tgl_nikah" name="TGLNIKAH" />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="kel_tgl_cerai" class="form-label small fw-semibold">Tanggal Cerai</label>
+                                            <input type="date" class="form-control form-control-sm" id="kel_tgl_cerai" name="TGLCERAI" />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="kel_tgl_wafat" class="form-label small fw-semibold">Tanggal Wafat</label>
+                                            <input type="date" class="form-control form-control-sm" id="kel_tgl_wafat" name="TGLWAFAT" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Baris 4: Keterangan Sekolah / Kuliah (SKS Anak) -->
+                                <div class="border rounded p-3 mb-3 bg-white" style="border-left: 4px solid #03c3ec !important;">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="small fw-bold text-info">
+                                            <i class="icon-base bx bx-book-reader me-1"></i> Surat Keterangan Kuliah / Sekolah (SKS Anak)
+                                        </span>
+                                        <small class="text-muted ms-2">(Wajib bagi anak usia 21–25 tahun yang masih kuliah/sekolah)</small>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-md-3">
+                                            <label for="kel_tgl_awal_sks" class="form-label small fw-semibold">Tanggal Awal SKS (TGLSKS)</label>
+                                            <input type="date" class="form-control form-control-sm" id="kel_tgl_awal_sks" name="TGLSKS" />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label for="kel_tgl_akhir_sks" class="form-label small fw-semibold">Tanggal Akhir SKS (TATSKS)</label>
+                                            <input type="date" class="form-control form-control-sm bg-light" id="kel_tgl_akhir_sks" name="TATSKS" disabled readonly />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="kel_no_surat_sks" class="form-label small fw-semibold">Nomor Surat SKS (NOSKS)</label>
+                                            <input type="text" class="form-control form-control-sm" id="kel_no_surat_sks" name="NOSKS" placeholder="Nomor Surat Keterangan Sekolah / Kampus" maxlength="50" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Baris 5: Pilihan Status Tunjangan & Toolbar Tombol Form -->
+                                <div class="row align-items-center g-3 pt-2">
+                                    <div class="col-md-7">
+                                        <label class="form-label small fw-bold text-dark d-block mb-2">
+                                            <i class="icon-base bx bx-money me-1 text-success"></i> Status Tunjangan Keluarga (KDTUNJANG):
+                                        </label>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <div class="form-check custom-option-basic">
+                                                <input class="form-check-input" type="radio" name="KDTUNJANG" id="status_tidak_tertunjang" value="0" checked />
+                                                <label class="form-check-label fw-semibold text-secondary small" for="status_tidak_tertunjang">
+                                                    <span class="badge bg-label-secondary me-1"><i class="icon-base bx bx-x-circle"></i></span> 0 - TIDAK TERTUNJANG
+                                                </label>
+                                            </div>
+                                            <div class="form-check custom-option-basic">
+                                                <input class="form-check-input" type="radio" name="KDTUNJANG" id="status_tertunjang" value="1" />
+                                                <label class="form-check-label fw-semibold text-success small" for="status_tertunjang">
+                                                    <span class="badge bg-label-success me-1"><i class="icon-base bx bx-check-circle"></i></span> 1 - TERTUNJANG
+                                                </label>
+                                            </div>
+                                            
+                                            <div class="form-check custom-option-basic">
+                                                <input class="form-check-input" type="radio" name="KDTUNJANG" id="status_tercatat" value="3" />
+                                                <label class="form-check-label fw-semibold text-info small" for="status_tercatat">
+                                                    <span class="badge bg-label-info me-1"><i class="icon-base bx bx-bookmark"></i></span> 3 - TERCATAT
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5 text-md-end">
+                                        <div class="d-inline-flex gap-2">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" id="btnBaruKeluarga">
+                                                <i class="icon-base bx bx-plus-circle me-1"></i> Baru
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-primary" id="btnSimpanKeluarga">
+                                                <span class="spinner-border spinner-border-sm d-none me-1" id="spinnerSimpanKeluarga" role="status"></span>
+                                                <i class="icon-base bx bx-save me-1"></i> Simpan
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" id="btnHapusKeluarga">
+                                                <span class="spinner-border spinner-border-sm d-none me-1" id="spinnerHapusKeluarga" role="status"></span>
+                                                <i class="icon-base bx bx-trash me-1"></i> Hapus
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- 3. Tabel Rincian Anggota Keluarga -->
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0 fw-bold text-dark">
+                                    <i class="icon-base bx bx-list-ul me-1 text-primary"></i> Susunan Anggota Keluarga Pegawai
+                                </h6>
+                                <small class="text-muted">Klik pada salah satu baris untuk melihat / mengedit rincian data</small>
+                            </div>
+                            <span class="badge bg-label-info" id="countAnggotaKeluarga">7 Anggota Keluarga</span>
+                        </div>
+                        <div class="table-responsive text-nowrap">
+                            <table class="table table-hover table-striped mb-0 align-middle" id="tabelAnggotaKeluarga">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 50px;">Kd</th>
+                                        <th>Nama Anggota Keluarga</th>
+                                        <th>Tanggal Lahir</th>
+                                        <th>Hubungan (hubkel_tbl)</th>
+                                        <th>Status Tunjangan (KDTUNJANG)</th>
+                                        <th style="width: 90px;" class="text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyAnggotaKeluarga">
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4 text-muted">
+                                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                            Memuat data susunan keluarga dari database kedua...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer bg-white border-top py-2 px-4 d-flex justify-content-between">
+                    <div>
+                        <small class="text-muted"><i class="icon-base bx bx-info-circle me-1"></i>Data keluarga disimpan ke koneksi database sekunder (mysql2).</small>
+                    </div>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="icon-base bx bx-x me-1"></i> Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('page-script')
@@ -485,6 +770,7 @@
             const createModal = new bootstrap.Modal(document.getElementById('createDokumenModal'));
             const editModal = new bootstrap.Modal(document.getElementById('editDokumenModal'));
             const deleteModal = new bootstrap.Modal(document.getElementById('deleteDokumenModal'));
+            const keluargaModal = new bootstrap.Modal(document.getElementById('modalDataKeluarga'));
 
             let isSettingEditValues = false;
 
@@ -851,6 +1137,420 @@
                     },
                     complete: function () {
                         $btn.prop('disabled', false).find('.spinner-border').addClass('d-none');
+                    }
+                });
+            });
+
+            // ========================================================
+            // 7. MODAL EXTRA LARGE: DATA KELUARGA (DATABASE KEDUA)
+            // ========================================================
+            let currentKeluargaList = [];
+
+            // Fungsi memuat referensi hubungan keluarga dari hubkel_tbl jika diperlukan
+            function loadHubkelOptions(selectedVal = null) {
+                const $select = $('#kel_hub_keluarga');
+                if ($select.find('option').length > 3) {
+                    if (selectedVal) $select.val(selectedVal);
+                    return;
+                }
+
+                $.ajax({
+                    url: "{{ route('keluarga.hubkel') }}",
+                    type: "GET",
+                    success: function (res) {
+                        if (res.success && res.data && res.data.length > 0) {
+                            $select.empty().append('<option value="">-- Pilih Hubungan --</option>');
+                            $.each(res.data, function (i, item) {
+                                const label = item.NMHUBKEL_LABEL || item.NMHUBKEL;
+                                $select.append(`<option value="${item.KDHUBKEL}">${item.KDHUBKEL} - ${label}</option>`);
+                            });
+                            if (selectedVal) $select.val(selectedVal);
+                        }
+                    }
+                });
+            }
+
+            // Fungsi memuat daftar keluarga dari tabel 'keluarga' (Database Kedua)
+            function loadKeluargaData(nip) {
+                const $tbody = $('#tbodyAnggotaKeluarga');
+                const $count = $('#countAnggotaKeluarga');
+
+                if (!nip || nip === '-') {
+                    $tbody.html('<tr><td colspan="6" class="text-center py-4 text-muted"><i class="icon-base bx bx-info-circle me-1"></i>NIP pegawai belum dipilih.</td></tr>');
+                    $count.text('0 Anggota');
+                    return;
+                }
+
+                $tbody.html(`
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                            Memuat data susunan keluarga untuk NIP <strong>${nip}</strong> dari database kedua...
+                        </td>
+                    </tr>
+                `);
+
+                $.ajax({
+                    url: `{{ url('keluarga/by-nip') }}/${encodeURIComponent(nip)}`,
+                    type: "GET",
+                    success: function (res) {
+                        currentKeluargaList = res.data || [];
+                        $count.text(`${currentKeluargaList.length} Anggota Keluarga`);
+
+                        if (currentKeluargaList.length === 0) {
+                            $tbody.html(`
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted">
+                                        <i class="icon-base bx bx-folder-open fs-3 d-block mb-1 text-secondary"></i>
+                                        Belum ada data anggota keluarga di database kedua untuk NIP ini.<br>
+                                        <small class="text-muted">Gunakan form di atas untuk menambahkan data baru.</small>
+                                    </td>
+                                </tr>
+                            `);
+                            return;
+                        }
+
+                        let html = '';
+                        $.each(currentKeluargaList, function (i, item) {
+                            const gelarD = item.GLRDEPAN ? item.GLRDEPAN + ' ' : '';
+                            const gelarB = item.GLRBELAKANG ? ', ' + item.GLRBELAKANG : '';
+                            const namaLengkap = gelarD + (item.NMKEL || '-') + gelarB;
+
+                            // Format Tanggal Lahir (d-m-Y)
+                            let tglLahirFmt = '-';
+                            if (item.TGLLHR) {
+                                const parts = item.TGLLHR.substring(0, 10).split('-');
+                                if (parts.length === 3) {
+                                    tglLahirFmt = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                                }
+                            }
+
+                            // Nama Hubungan (gunakan label_hubkel yang sudah diformat di controller)
+                            const nmHubkel = item.label_hubkel || (item.hubkel ? item.hubkel.NMHUBKEL : item.KDHUBKEL);
+
+                            // Badge Status Tunjangan (KDTUNJANG: 0 = TIDAK TERTUNJANG, 1 = TERTUNJANG, 2 = CALON TERTUNJANG, 3 = TERCATAT)
+                            let statusBadge = '<span class="badge bg-label-secondary">TIDAK TERTUNJANG (0)</span>';
+                            if (item.KDTUNJANG == 1 || item.KDTUNJANG === '1') {
+                                statusBadge = '<span class="badge bg-label-success"><i class="icon-base bx bx-check me-1"></i>TERTUNJANG (1)</span>';
+                            } else if (item.KDTUNJANG == 2 || item.KDTUNJANG === '2') {
+                                statusBadge = '<span class="badge bg-label-warning"><i class="icon-base bx bx-time me-1"></i>CALON TERTUNJANG (2)</span>';
+                            } else if (item.KDTUNJANG == 3 || item.KDTUNJANG === '3') {
+                                statusBadge = '<span class="badge bg-label-info"><i class="icon-base bx bx-bookmark me-1"></i>TERCATAT (3)</span>';
+                            }
+
+                            html += `
+                                <tr class="table-row-keluarga" data-index="${i}" style="cursor: pointer;">
+                                    <td><span class="badge bg-label-dark">${item.KDHUBKEL}</span></td>
+                                    <td>
+                                        <span class="fw-bold text-dark d-block">${namaLengkap}</span>
+                                        ${item.NIPSUAMIISTRI ? `<small class="text-muted"><i class="icon-base bx bx-id-card me-1"></i>Pasangan ASN: ${item.NIPSUAMIISTRI}</small>` : ''}
+                                    </td>
+                                    <td>${tglLahirFmt}</td>
+                                    <td><span class="badge bg-label-primary">${nmHubkel}</span></td>
+                                    <td>${statusBadge}</td>
+                                    <td class="text-center">
+                                        <div class="d-inline-flex gap-1">
+                                            <button type="button" class="btn btn-xs btn-icon btn-outline-primary btn-pilih-keluarga" title="Edit Baris Ini">
+                                                <i class="icon-base bx bx-edit-alt"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-xs btn-icon btn-outline-danger btn-hapus-row-keluarga" data-nip="${item.NIP}" data-kdhub="${item.KDHUBKEL}" data-nama="${item.NMKEL}" title="Hapus Data">
+                                                <i class="icon-base bx bx-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+
+                        $tbody.html(html);
+                    },
+                    error: function (xhr) {
+                        const errMsg = xhr.responseJSON?.message || 'Gagal memuat data keluarga dari database kedua.';
+                        $tbody.html(`
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-danger">
+                                    <i class="icon-base bx bx-error-circle fs-3 d-block mb-1"></i>
+                                    <strong>Koneksi Database Kedua:</strong><br>
+                                    <small>${errMsg}</small>
+                                </td>
+                            </tr>
+                        `);
+                        $count.text('0 Anggota');
+                    }
+                });
+            }
+
+            // Buka Modal Data Keluarga dari Tombol Aksi Dokumen
+            $(document).on('click', '.btn-data-keluarga', function () {
+                const dokId = $(this).data('dok-id');
+                const pgwId = $(this).data('pgw-id');
+                const nip = $(this).data('nip') || '-';
+                const nama = $(this).data('nama') || '- Tidak Ada Pegawai -';
+                const skpd = $(this).data('skpd') || '-';
+
+                $('#kel_dok_id').val(dokId);
+                $('#kel_pgw_id').val(pgwId);
+                $('#kel_nip').val(nip);
+                $('#kel_pegawai_nip').val(nip);
+                $('#kel_pegawai_nama').text(nama);
+                $('#kel_pegawai_skpd').text(skpd);
+
+                // Reset form ke mode tambah baru
+                $('#btnBaruKeluarga').trigger('click');
+
+                // Muat opsi hubungan & data keluarga untuk NIP bersangkutan
+                loadHubkelOptions();
+                loadKeluargaData(nip);
+
+                keluargaModal.show();
+            });
+
+            // Tombol Cari / Refresh NIP di header kartu keluarga
+            $('#btnCariNipPegawai').on('click', function () {
+                const nip = $('#kel_pegawai_nip').val();
+                loadKeluargaData(nip);
+            });
+
+            // Klik Baris Tabel Anggota Keluarga untuk Memilih/Edit Data
+            $(document).on('click', '.table-row-keluarga', function (e) {
+                // Hindari bentrok jika tombol hapus di dalam baris diklik
+                if ($(e.target).closest('.btn-hapus-row-keluarga').length) return;
+
+                $('.table-row-keluarga').removeClass('table-active');
+                $(this).addClass('table-active');
+
+                const idx = $(this).data('index');
+                const item = currentKeluargaList[idx];
+                if (!item) return;
+
+                // Isi seluruh field formulir dengan data dari database kedua
+                $('#kel_hub_keluarga').val(item.KDHUBKEL);
+                $('#kel_gelar_depan').val(item.GLRDEPAN || '');
+                $('#kel_nama').val(item.NMKEL || '');
+                $('#kel_gelar_belakang').val(item.GLRBELAKANG || '');
+                $('#kel_tgl_lahir').val(item.TGLLHR ? item.TGLLHR.substring(0, 10) : '');
+                $('#kel_jenis_kelamin').val(item.KDJENKEL || '1');
+                $('#kel_kdstawin').val(item.kdstawin || '1');
+                $('#kel_pekerjaan').val(item.PEKERJAAN || '');
+                $('#kel_nip_pasangan').val(item.NIPSUAMIISTRI || '');
+                $('#kel_tgl_nikah').val(item.TGLNIKAH ? item.TGLNIKAH.substring(0, 10) : '');
+                $('#kel_tgl_cerai').val(item.TGLCERAI ? item.TGLCERAI.substring(0, 10) : '');
+                $('#kel_tgl_wafat').val(item.TGLWAFAT ? item.TGLWAFAT.substring(0, 10) : '');
+                $('#kel_tgl_awal_sks').val(item.TGLSKS ? item.TGLSKS.substring(0, 10) : '');
+                if (item.TGLSKS) {
+                    $('#kel_tgl_akhir_sks').val(item.TATSKS ? item.TATSKS.substring(0, 10) : '').prop('disabled', true);
+                } else {
+                    $('#kel_tgl_akhir_sks').val('').prop('disabled', true);
+                }
+                $('#kel_no_surat_sks').val(item.NOSKS || '');
+
+                // Status Tunjangan (KDTUNJANG: 0 = TIDAK TERTUNJANG, 1 = TERTUNJANG, 2 = CALON TERTUNJANG, 3 = TERCATAT)
+                if (item.KDTUNJANG == 1 || item.KDTUNJANG === '1') {
+                    $('#status_tertunjang').prop('checked', true);
+                } else if (item.KDTUNJANG == 2 || item.KDTUNJANG === '2') {
+                    $('#status_calon_tertunjang').prop('checked', true);
+                } else if (item.KDTUNJANG == 3 || item.KDTUNJANG === '3') {
+                    $('#status_tercatat').prop('checked', true);
+                } else {
+                    $('#status_tidak_tertunjang').prop('checked', true);
+                }
+
+                $('#badgeFormMode').text(`Mode: Edit Data (${item.NMKEL})`).removeClass('bg-label-primary').addClass('bg-label-warning');
+            });
+
+            // Tombol "Baru" untuk Reset Form Input
+            $('#btnBaruKeluarga').on('click', function () {
+                const nip = $('#kel_pegawai_nip').val();
+                $('.table-row-keluarga').removeClass('table-active');
+                $('#formInputKeluarga')[0].reset();
+                $('#kel_nip').val(nip);
+                $('#kel_kdstawin').val('1');
+                $('#kel_jenis_kelamin').val('1');
+                $('#kel_tgl_awal_sks').val('');
+                $('#kel_tgl_akhir_sks').val('').prop('disabled', true);
+                $('#status_tidak_tertunjang').prop('checked', true);
+                $('#badgeFormMode').text('Mode: Tambah Baru').removeClass('bg-label-warning').addClass('bg-label-primary');
+                $('#kel_hub_keluarga').focus();
+            });
+
+            // Auto-fill Tanggal Akhir SKS (TATSKS) otomatis 1 tahun setelah Tanggal Awal SKS (TGLSKS) dan disabled
+            $('#kel_tgl_awal_sks').on('change input', function () {
+                const val = $(this).val();
+                if (!val) {
+                    $('#kel_tgl_akhir_sks').val('').prop('disabled', true);
+                    return;
+                }
+                const parts = val.split('-');
+                if (parts.length === 3) {
+                    const y = parseInt(parts[0], 10) + 1;
+                    const m = parseInt(parts[1], 10) - 1;
+                    const d = parseInt(parts[2], 10);
+                    const newDate = new Date(y, m, d);
+                    const yyyy = newDate.getFullYear();
+                    const mm = String(newDate.getMonth() + 1).padStart(2, '0');
+                    const dd = String(newDate.getDate()).padStart(2, '0');
+                    $('#kel_tgl_akhir_sks').val(`${yyyy}-${mm}-${dd}`).prop('disabled', true);
+                }
+            });
+
+            // Tombol "Cari NIP" Pasangan ASN (Search by Model Keluarga)
+            $('#btnCariNipPasangan').on('click', function () {
+                const nipPasangan = ($('#kel_nip_pasangan').val() || '').trim();
+                if (!nipPasangan) {
+                    showNotification('warning', 'Ketikkan NIP Istri / Suami yang ingin dicari terlebih dahulu.');
+                    $('#kel_nip_pasangan').focus();
+                    return;
+                }
+
+                const $btn = $(this);
+                $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Mencari...');
+
+                $.ajax({
+                    url: `{{ url('keluarga/cari-pasangan') }}/${encodeURIComponent(nipPasangan)}`,
+                    type: "GET",
+                    success: function (res) {
+                        if (res.success && res.data) {
+                            const p = res.data;
+                            showNotification('success', `Data pasangan ditemukan di Model Keluarga: ${p.nama_lengkap} (NIP: ${p.NIP})`);
+
+                            // Otomatis bantu isi data ke form jika sedang mengisi data Istri / Suami (KDHUBKEL = 10)
+                            const currentHub = $('#kel_hub_keluarga').val();
+                            if (currentHub === '10' || !currentHub) {
+                                if (currentHub !== '10') $('#kel_hub_keluarga').val('10');
+                                if (!$('#kel_nama').val()) $('#kel_nama').val(p.NMKEL || '');
+                                if (!$('#kel_gelar_depan').val()) $('#kel_gelar_depan').val(p.GLRDEPAN || '');
+                                if (!$('#kel_gelar_belakang').val()) $('#kel_gelar_belakang').val(p.GLRBELAKANG || '');
+                                if (p.KDJENKEL) $('#kel_jenis_kelamin').val(p.KDJENKEL);
+                                $('#kel_kdstawin').val('2'); // Status kawin = 2 (Kawin)
+                                if (p.TGLLHR && !$('#kel_tgl_lahir').val()) $('#kel_tgl_lahir').val(p.TGLLHR.substring(0, 10));
+                                if (p.PEKERJAAN && !$('#kel_pekerjaan').val()) $('#kel_pekerjaan').val(p.PEKERJAAN);
+                                if (p.TGLNIKAH && !$('#kel_tgl_nikah').val()) $('#kel_tgl_nikah').val(p.TGLNIKAH.substring(0, 10));
+                            }
+                        }
+                    },
+                    error: function (xhr) {
+                        const msg = xhr.responseJSON?.message || 'Data NIP pasangan tidak ditemukan di tabel keluarga.';
+                        showNotification('warning', msg);
+                    },
+                    complete: function () {
+                        $btn.prop('disabled', false).html('<i class="icon-base bx bx-search me-1"></i> Cari NIP');
+                    }
+                });
+            });
+
+            // Tombol "Simpan" Data Keluarga ke Database Kedua
+            $('#btnSimpanKeluarga').on('click', function () {
+                const nip = $('#kel_nip').val();
+                const kdhubkel = $('#kel_hub_keluarga').val();
+                const nmkel = $('#kel_nama').val();
+
+                if (!nip || nip === '-') {
+                    showNotification('warning', 'NIP Pegawai tidak valid.');
+                    return;
+                }
+                if (!kdhubkel) {
+                    showNotification('warning', 'Pilih Hubungan Keluarga (KDHUBKEL) terlebih dahulu.');
+                    $('#kel_hub_keluarga').focus();
+                    return;
+                }
+                if (!nmkel) {
+                    showNotification('warning', 'Nama Anggota Keluarga (NMKEL) wajib diisi.');
+                    $('#kel_nama').focus();
+                    return;
+                }
+
+                const $btn = $(this);
+                const $spinner = $('#spinnerSimpanKeluarga');
+                $btn.prop('disabled', true);
+                $spinner.removeClass('d-none');
+
+                // Pastikan input disabled (seperti kel_tgl_akhir_sks) tetap ikut ter-serialize
+                const $disabledFields = $('#formInputKeluarga').find(':disabled');
+                $disabledFields.prop('disabled', false);
+                const formData = $('#formInputKeluarga').serialize();
+                $disabledFields.prop('disabled', true);
+
+                $.ajax({
+                    url: "{{ route('keluarga.store') }}",
+                    type: "POST",
+                    data: formData,
+                    success: function (res) {
+                        showNotification('success', res.message || 'Data anggota keluarga berhasil disimpan ke database kedua!');
+                        loadKeluargaData(nip);
+                        $('#btnBaruKeluarga').trigger('click');
+                    },
+                    error: function (xhr) {
+                        const msg = xhr.responseJSON?.message || 'Gagal menyimpan data keluarga ke database kedua.';
+                        showNotification('danger', msg);
+                    },
+                    complete: function () {
+                        $btn.prop('disabled', false);
+                        $spinner.addClass('d-none');
+                    }
+                });
+            });
+
+            // Tombol "Hapus" dari Toolbar Form
+            $('#btnHapusKeluarga').on('click', function () {
+                const nip = $('#kel_nip').val();
+                const kdhubkel = $('#kel_hub_keluarga').val();
+                const nmkel = $('#kel_nama').val();
+
+                if (!nip || !kdhubkel || !nmkel) {
+                    showNotification('warning', 'Pilih baris anggota keluarga yang ingin dihapus pada tabel di bawah terlebih dahulu.');
+                    return;
+                }
+
+                if (!confirm(`Apakah Anda yakin ingin menghapus data anggota keluarga "${nmkel}" (Kode: ${kdhubkel}) dari database kedua?`)) {
+                    return;
+                }
+
+                const $btn = $(this);
+                const $spinner = $('#spinnerHapusKeluarga');
+                $btn.prop('disabled', true);
+                $spinner.removeClass('d-none');
+
+                $.ajax({
+                    url: `{{ url('keluarga') }}/${encodeURIComponent(nip)}/${encodeURIComponent(kdhubkel)}`,
+                    type: "DELETE",
+                    success: function (res) {
+                        showNotification('success', res.message || 'Data anggota keluarga berhasil dihapus!');
+                        loadKeluargaData(nip);
+                        $('#btnBaruKeluarga').trigger('click');
+                    },
+                    error: function (xhr) {
+                        const msg = xhr.responseJSON?.message || 'Gagal menghapus data dari database kedua.';
+                        showNotification('danger', msg);
+                    },
+                    complete: function () {
+                        $btn.prop('disabled', false);
+                        $spinner.addClass('d-none');
+                    }
+                });
+            });
+
+            // Tombol Hapus per Baris di Tabel
+            $(document).on('click', '.btn-hapus-row-keluarga', function (e) {
+                e.stopPropagation();
+                const nip = $(this).data('nip');
+                const kdhub = $(this).data('kdhub');
+                const nama = $(this).data('nama');
+
+                if (!confirm(`Hapus data anggota keluarga "${nama}" (Kode: ${kdhub}) dari database kedua?`)) {
+                    return;
+                }
+
+                $.ajax({
+                    url: `{{ url('keluarga') }}/${encodeURIComponent(nip)}/${encodeURIComponent(kdhub)}`,
+                    type: "DELETE",
+                    success: function (res) {
+                        showNotification('success', res.message || 'Data anggota keluarga berhasil dihapus!');
+                        loadKeluargaData(nip);
+                        $('#btnBaruKeluarga').trigger('click');
+                    },
+                    error: function (xhr) {
+                        const msg = xhr.responseJSON?.message || 'Gagal menghapus data.';
+                        showNotification('danger', msg);
                     }
                 });
             });

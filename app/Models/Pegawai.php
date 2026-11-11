@@ -10,6 +10,8 @@ class Pegawai extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    protected $connection = 'mysql';
+
     protected $table = 'pegawai';
     protected $primaryKey = 'pgw_id';
     public $timestamps = false;

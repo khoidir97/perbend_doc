@@ -6,6 +6,7 @@ use App\Models\Dokumen;
 use App\Models\Pegawai;
 use App\Models\Satker;
 use App\Models\Skpd;
+use App\Models\Hubkel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -231,6 +232,24 @@ class DokumenController extends Controller
           }
         }
 
+        // Tombol Data Keluarga (Modal XL)
+        $pgwNip = $dok->pegawai ? e($dok->pegawai->pgw_nip) : '';
+        $pgwNama = $dok->pegawai ? e($dok->pegawai->pgw_nama) : '';
+        $skpdNama = $dok->skpd ? e($dok->skpd->opd_nama) : ($dok->dok_skpd ?? '');
+
+        $actionsHtml .= '
+          <button type="button" 
+            class="btn btn-sm btn-icon btn-outline-info btn-data-keluarga"
+            data-dok-id="' . $dok->dok_id . '"
+            data-pgw-id="' . e($dok->dok_pgw_id ?? '') . '"
+            data-nip="' . $pgwNip . '"
+            data-nama="' . $pgwNama . '"
+            data-skpd="' . $skpdNama . '"
+            title="Pemeliharaan Data Keluarga (KP4)">
+            <i class="icon-base bx bx-group"></i>
+          </button>
+        ';
+
         // Tombol Edit Dokumen (Admin selalu bisa, atau OPD hanya jika belum diverifikasi)
         if ($isAdmin || $dok->dok_status == 0) {
           $actionsHtml .= '
@@ -286,7 +305,34 @@ class DokumenController extends Controller
 
     $skpdList = $isAdmin ? Skpd::orderBy('opd_nama', 'asc')->get() : collect([]);
 
-    return view('content.dokumen.index', compact('skpdList', 'isAdmin', 'currentUser'));
+    // Ambil daftar hubungan keluarga dari database kedua (hubkel_tbl)
+    $hubkelList = collect([]);
+    try {
+      $hubkelList = Hubkel::orderBy('KDHUBKEL', 'asc')->get();
+    } catch (\Throwable $th) {
+      // Fallback diam jika database kedua belum siap/dikonfigurasi
+    }
+
+    if ($hubkelList->isEmpty()) {
+      $hubkelList = collect([
+        (object)['KDHUBKEL' => '00', 'NMHUBKEL' => 'DIRI SENDIRI'],
+        (object)['KDHUBKEL' => '10', 'NMHUBKEL' => 'ISTERI / SUAMI'],
+        (object)['KDHUBKEL' => '11', 'NMHUBKEL' => 'ANAK'],
+        (object)['KDHUBKEL' => '12', 'NMHUBKEL' => 'ANAK'],
+        (object)['KDHUBKEL' => '13', 'NMHUBKEL' => 'ANAK'],
+        (object)['KDHUBKEL' => '14', 'NMHUBKEL' => 'ANAK'],
+        (object)['KDHUBKEL' => '15', 'NMHUBKEL' => 'ANAK'],
+        (object)['KDHUBKEL' => '16', 'NMHUBKEL' => 'ANAK'],
+        (object)['KDHUBKEL' => '17', 'NMHUBKEL' => 'ANAK'],
+        (object)['KDHUBKEL' => '18', 'NMHUBKEL' => 'ANAK'],
+        (object)['KDHUBKEL' => '19', 'NMHUBKEL' => 'ANAK'],
+        (object)['KDHUBKEL' => '1A', 'NMHUBKEL' => 'ANAK TIRI 1 (DARI ISTERI / SUAMI KESATU)'],
+        (object)['KDHUBKEL' => '1B', 'NMHUBKEL' => 'ANAK TIRI 2 (DARI ISTERI / SUAMI KESATU)'],
+        (object)['KDHUBKEL' => '1C', 'NMHUBKEL' => 'ANAK TIRI 3 (DARI ISTERI / SUAMI KESATU)'],
+      ]);
+    }
+
+    return view('content.dokumen.index', compact('skpdList', 'isAdmin', 'currentUser', 'hubkelList'));
   }
 
   /**

@@ -47,6 +47,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\SkpdController;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\DokumenController;
+use App\Http\Controllers\KeluargaController;
 
 // authentication (guest only)
 Route::middleware('guest')->group(function () {
@@ -75,6 +76,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/dokumen/pegawai-by-skpd', [DokumenController::class, 'getPegawaiBySkpd'])->name('dokumen.pegawai-by-skpd');
     Route::patch('/dokumen/{id}/verifikasi', [DokumenController::class, 'verifikasi'])->name('dokumen.verifikasi');
     Route::resource('dokumen', DokumenController::class);
+
+    // Data Keluarga (Database Kedua - KP4)
+    Route::get('/keluarga/hubkel', [KeluargaController::class, 'getHubkel'])->name('keluarga.hubkel');
+    Route::get('/keluarga/cari-pasangan/{nip}', [KeluargaController::class, 'cariPasangan'])->name('keluarga.cari-pasangan');
+    Route::get('/keluarga/by-nip/{nip}', [KeluargaController::class, 'getByNip'])->name('keluarga.by-nip');
+    Route::post('/keluarga', [KeluargaController::class, 'store'])->name('keluarga.store');
+    Route::delete('/keluarga/{nip}/{kdhubkel}', [KeluargaController::class, 'destroy'])->name('keluarga.destroy');
 
     // layout
     Route::get('/layouts/without-menu', [WithoutMenu::class, 'index'])->name('layouts-without-menu');

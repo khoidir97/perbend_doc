@@ -13,13 +13,6 @@
       "slug": "dokumen"
     },
     {
-      "url": "users",
-      "name": "Manajemen User",
-      "icon": "menu-icon icon-base bx bx-user",
-      "slug": "users",
-      "adminOnly": true
-    },
-    {
       "url": "skpd",
       "name": "Data SKPD",
       "icon": "menu-icon icon-base bx bx-buildings",

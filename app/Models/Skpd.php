@@ -9,6 +9,8 @@ class Skpd extends Model
 {
     use HasFactory;
 
+    protected $connection = 'mysql';
+
     protected $table = 'skpd';
     protected $primaryKey = 'opd_id';
     public $timestamps = false;

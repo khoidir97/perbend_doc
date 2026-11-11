@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Dokumen extends Model
 {
     use HasFactory;
-
+    protected $connection = 'mysql';
     protected $table = 'dokumen';
     protected $primaryKey = 'dok_id';
     public $timestamps = false;

@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Satker extends Model
 {
 
+    protected $connection = 'mysql';
+
     protected $table = 'satker';
     protected $primaryKey = 'stk_id';
     public $timestamps = false;

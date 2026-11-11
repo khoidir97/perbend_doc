@@ -370,7 +370,7 @@
                         </div>
                         <div>
                             <h5 class="modal-title text-white mb-0 fw-semibold">Pemeliharaan Data Keluarga (KP4)</h5>
-                            <small class="text-white-50">Pengelolaan rincian susunan keluarga dan tunjangan pegawai (Database Kedua)</small>
+                            <small class="text-white-50">Pengelolaan rincian susunan keluarga dan tunjangan pegawai</small>
                         </div>
                     </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -480,7 +480,6 @@
                                         <select class="form-select form-select-sm" id="kel_kdstawin" name="kdstawin" required>
                                             <option value="1">1 - Tidak Kawin</option>
                                             <option value="2">2 - Kawin</option>
-                                            <option value="3">3 - Janda / Duda</option>
                                         </select>
                                     </div>
                                     <div class="col-md-3">
@@ -532,11 +531,11 @@
                                     </div>
                                     <div class="row g-2">
                                         <div class="col-md-3">
-                                            <label for="kel_tgl_awal_sks" class="form-label small fw-semibold">Tanggal Awal SKS (TGLSKS)</label>
+                                            <label for="kel_tgl_awal_sks" class="form-label small fw-semibold">Tanggal Awal Surat Aktif Kuliah</label>
                                             <input type="date" class="form-control form-control-sm" id="kel_tgl_awal_sks" name="TGLSKS" />
                                         </div>
                                         <div class="col-md-3">
-                                            <label for="kel_tgl_akhir_sks" class="form-label small fw-semibold">Tanggal Akhir SKS (TATSKS)</label>
+                                            <label for="kel_tgl_akhir_sks" class="form-label small fw-semibold">Tanggal Akhir Surat Aktif Kuliah</label>
                                             <input type="date" class="form-control form-control-sm bg-light" id="kel_tgl_akhir_sks" name="TATSKS" disabled readonly />
                                         </div>
                                         <div class="col-md-6">
@@ -612,8 +611,8 @@
                                         <th style="width: 50px;">Kd</th>
                                         <th>Nama Anggota Keluarga</th>
                                         <th>Tanggal Lahir</th>
-                                        <th>Hubungan (hubkel_tbl)</th>
-                                        <th>Status Tunjangan (KDTUNJANG)</th>
+                                        <th>Hubungan</th>
+                                        <th>Status Tunjangan</th>
                                         <th style="width: 90px;" class="text-center">Aksi</th>
                                     </tr>
                                 </thead>
@@ -633,7 +632,7 @@
                 <!-- Modal Footer -->
                 <div class="modal-footer bg-white border-top py-2 px-4 d-flex justify-content-between">
                     <div>
-                        <small class="text-muted"><i class="icon-base bx bx-info-circle me-1"></i>Data keluarga disimpan ke koneksi database sekunder (mysql2).</small>
+                        <small class="text-muted"><i class="icon-base bx bx-info-circle me-1"></i>Data keluarga disimpan ke koneksi database sekunder.</small>
                     </div>
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
                         <i class="icon-base bx bx-x me-1"></i> Tutup

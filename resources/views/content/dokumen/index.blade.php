@@ -75,11 +75,11 @@
                 </div>
             @endif
 
-            <!-- Toast Container (Pojok kanan atas layar dengan jarak aman) -->
+            <!-- Toast Container (Pojok kanan atas layar dengan z-index tertinggi agar di atas modal) -->
             <div class="toast-container position-fixed top-0 end-0 p-3"
-                style="z-index: 1090; margin-top: 1rem; margin-right: 1.5rem;" id="toastPlacementContainer">
+                style="z-index: 99999 !important; margin-top: 1rem; margin-right: 1.5rem;" id="toastPlacementContainer">
                 <div id="ajaxLiveToast" class="bs-toast toast fade shadow-lg" role="alert" aria-live="assertive"
-                    aria-atomic="true">
+                    aria-atomic="true" style="z-index: 99999 !important;">
                     <div class="toast-header">
                         <i class="icon-base bx bx-bell me-2" id="toastIcon"></i>
                         <div class="me-auto fw-semibold" id="toastTitle">Pemberitahuan</div>
@@ -549,19 +549,19 @@
                                 <div class="row align-items-center g-3 pt-2">
                                     <div class="col-md-7">
                                         <label class="form-label small fw-bold text-dark d-block mb-2">
-                                            <i class="icon-base bx bx-money me-1 text-success"></i> Status Tunjangan Keluarga (KDTUNJANG):
+                                            <i class="icon-base bx bx-money me-1 text-success"></i> Status Tunjangan Keluarga:
                                         </label>
                                         <div class="d-flex flex-wrap gap-2">
                                             <div class="form-check custom-option-basic">
-                                                <input class="form-check-input" type="radio" name="KDTUNJANG" id="status_tidak_tertunjang" value="0" checked />
+                                                <input class="form-check-input" type="radio" name="KDTUNJANG" id="status_tidak_tertunjang" value="1" checked />
                                                 <label class="form-check-label fw-semibold text-secondary small" for="status_tidak_tertunjang">
-                                                    <span class="badge bg-label-secondary me-1"><i class="icon-base bx bx-x-circle"></i></span> 0 - TIDAK TERTUNJANG
+                                                    <span class="badge bg-label-secondary me-1"><i class="icon-base bx bx-x-circle"></i></span> 1 - TIDAK TERTUNJANG
                                                 </label>
                                             </div>
                                             <div class="form-check custom-option-basic">
-                                                <input class="form-check-input" type="radio" name="KDTUNJANG" id="status_tertunjang" value="1" />
+                                                <input class="form-check-input" type="radio" name="KDTUNJANG" id="status_tertunjang" value="2" />
                                                 <label class="form-check-label fw-semibold text-success small" for="status_tertunjang">
-                                                    <span class="badge bg-label-success me-1"><i class="icon-base bx bx-check-circle"></i></span> 1 - TERTUNJANG
+                                                    <span class="badge bg-label-success me-1"><i class="icon-base bx bx-check-circle"></i></span> 2 - TERTUNJANG
                                                 </label>
                                             </div>
                                             
@@ -709,9 +709,13 @@
                 table.ajax.reload();
             });
 
-            // Helper Notifikasi Toast (Pojok kanan atas, auto-hide, z-index paling atas)
+            // Helper Notifikasi Toast (Pojok kanan atas, auto-hide, z-index paling atas di atas modal)
             let toastTimer = null;
             function showNotification(type, message) {
+                const toastContainer = document.getElementById('toastPlacementContainer');
+                if (toastContainer && toastContainer.parentElement !== document.body) {
+                    document.body.appendChild(toastContainer);
+                }
                 const toastEl = document.getElementById('ajaxLiveToast');
                 const toastTitle = document.getElementById('toastTitle');
                 const toastIcon = document.getElementById('toastIcon');
@@ -719,6 +723,7 @@
 
                 // Reset class background & text warna (tanpa class toast-placement-ex agar tidak terpotong)
                 toastEl.className = 'bs-toast toast fade shadow-lg';
+                toastEl.style.zIndex = '99999';
 
                 if (type === 'success') {
                     toastEl.classList.add('bg-success');
@@ -1228,11 +1233,9 @@
                             const nmHubkel = item.label_hubkel || (item.hubkel ? item.hubkel.NMHUBKEL : item.KDHUBKEL);
 
                             // Badge Status Tunjangan (KDTUNJANG: 0 = TIDAK TERTUNJANG, 1 = TERTUNJANG, 2 = CALON TERTUNJANG, 3 = TERCATAT)
-                            let statusBadge = '<span class="badge bg-label-secondary">TIDAK TERTUNJANG (0)</span>';
-                            if (item.KDTUNJANG == 1 || item.KDTUNJANG === '1') {
-                                statusBadge = '<span class="badge bg-label-success"><i class="icon-base bx bx-check me-1"></i>TERTUNJANG (1)</span>';
-                            } else if (item.KDTUNJANG == 2 || item.KDTUNJANG === '2') {
-                                statusBadge = '<span class="badge bg-label-warning"><i class="icon-base bx bx-time me-1"></i>CALON TERTUNJANG (2)</span>';
+                            let statusBadge = '<span class="badge bg-label-secondary">TIDAK TERTUNJANG (1)</span>';
+                            if (item.KDTUNJANG == 2 || item.KDTUNJANG === '2') {
+                                statusBadge = '<span class="badge bg-label-success"><i class="icon-base bx bx-check me-1"></i>TERTUNJANG (2)</span>';
                             } else if (item.KDTUNJANG == 3 || item.KDTUNJANG === '3') {
                                 statusBadge = '<span class="badge bg-label-info"><i class="icon-base bx bx-bookmark me-1"></i>TERCATAT (3)</span>';
                             }
@@ -1345,9 +1348,9 @@
 
                 // Status Tunjangan (KDTUNJANG: 0 = TIDAK TERTUNJANG, 1 = TERTUNJANG, 2 = CALON TERTUNJANG, 3 = TERCATAT)
                 if (item.KDTUNJANG == 1 || item.KDTUNJANG === '1') {
-                    $('#status_tertunjang').prop('checked', true);
+                    $('#status_tidak_tertunjang').prop('checked', true);
                 } else if (item.KDTUNJANG == 2 || item.KDTUNJANG === '2') {
-                    $('#status_calon_tertunjang').prop('checked', true);
+                    $('#status_tertunjang').prop('checked', true);
                 } else if (item.KDTUNJANG == 3 || item.KDTUNJANG === '3') {
                     $('#status_tercatat').prop('checked', true);
                 } else {

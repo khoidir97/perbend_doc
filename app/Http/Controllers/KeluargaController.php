@@ -197,6 +197,24 @@ class KeluargaController extends Controller
                 }
             }
 
+            // Validasi Khusus Anak Tertunjang: Maksimal 3 orang anak tertunjang (kandung, tiri, maupun angkat)
+            if ($isAnak && $kdTunjang === 2) {
+                $countAnakTertunjangLain = Keluarga::where('NIP', $nip)
+                    ->where('KDTUNJANG', 2)
+                    ->when($targetQueryKd, function ($q) use ($targetQueryKd) {
+                        $q->where('KDHUBKEL', '!=', $targetQueryKd);
+                    })
+                    ->get()
+                    ->filter(function ($k) {
+                        return preg_match('/^[1-5][1-9A-G]$/i', trim($k->KDHUBKEL));
+                    })
+                    ->count();
+
+                if ($countAnakTertunjangLain >= 3) {
+                    $kdTunjang = 1; // Auto tidak tertunjang jika anak tertunjang sudah mencapai 3 orang
+                }
+            }
+
             // Validasi Maksimal 5 Tertunjang per Keluarga:
             // Jika user memilih Tertunjang (KDTUNJANG = 2), periksa apakah kuota 5 orang sudah penuh
             if ($kdTunjang === 2) {

@@ -679,6 +679,9 @@
                                             <i class="icon-base bx bx-lock-alt me-1"></i>Status otomatis <strong>1 - TIDAK
                                                 TERTUNJANG</strong> dan dikunci karena Tanggal Cerai / Wafat terisi.
                                         </small>
+                                        <small class="text-warning mt-1 d-none" id="keteranganTunjangMaxAnak">
+                                            <i class="icon-base bx bx-error-circle me-1"></i>Kuota tunjangan anak sudah mencapai batas maksimal (3 orang anak tertunjang). Pilihan status tunjangan dikunci ke <strong>1 - TIDAK TERTUNJANG</strong>.
+                                        </small>
                                         <small class="text-warning mt-1 d-none" id="keteranganTunjangMax5">
                                             <i class="icon-base bx bx-error-circle me-1"></i>Kuota tunjangan keluarga sudah mencapai batas maksimal (5 orang tertunjang). Pilihan status tunjangan dikunci ke <strong>1 - TIDAK TERTUNJANG</strong>.
                                         </small>
@@ -1558,15 +1561,20 @@
 
                 // Hitung berapa anggota keluarga yang saat ini KDTUNJANG == 2 (selain item yang sedang diedit jika sedang edit)
                 let totalTertunjangLain = 0;
+                let totalAnakTertunjangLain = 0;
                 if (currentKeluargaList && currentKeluargaList.length > 0) {
                     $.each(currentKeluargaList, function (_, k) {
-                        const kKd = (k.KDHUBKEL ? String(k.KDHUBKEL).trim() : '');
+                        const kKd = (k.KDHUBKEL ? String(k.KDHUBKEL).trim().toUpperCase() : '');
                         // Jika sedang edit, jangan hitung anggota yang sedang diedit
                         if (editingOldKd && kKd === editingOldKd) {
                             return;
                         }
                         if (String(k.KDTUNJANG) === '2') {
                             totalTertunjangLain++;
+                            // Cek apakah anggota keluarga ini adalah anak (kandung, tiri, angkat: 11-19, 21-29, 31-39, 41-49, 1A-1G, dst)
+                            if (/^[1-5][1-9A-G]$/.test(kKd)) {
+                                totalAnakTertunjangLain++;
+                            }
                         }
                     });
                 }
@@ -1608,6 +1616,7 @@
                     $('#status_tidak_tertunjang').prop('checked', true);
                     $radioTunjang.prop('disabled', true);
                     $('#keteranganTunjangLocked').removeClass('d-none');
+                    $('#keteranganTunjangMaxAnak').addClass('d-none');
                     $('#keteranganTunjangMax5').addClass('d-none');
                     $('#keteranganTunjangUsiaAnak').addClass('d-none');
                 } else if (isUsiaAnakTerkunci) {
@@ -1616,17 +1625,28 @@
                     $('#textTunjangUsiaAnak').text(pesanUsiaAnak);
                     $('#keteranganTunjangUsiaAnak').removeClass('d-none');
                     $('#keteranganTunjangLocked').addClass('d-none');
+                    $('#keteranganTunjangMaxAnak').addClass('d-none');
                     $('#keteranganTunjangMax5').addClass('d-none');
+                } else if (isAnak && totalAnakTertunjangLain >= 3) {
+                    // Kuota maksimal 3 anak tertunjang sudah penuh
+                    $('#status_tidak_tertunjang').prop('checked', true);
+                    $radioTunjang.prop('disabled', true);
+                    $('#keteranganTunjangMaxAnak').removeClass('d-none');
+                    $('#keteranganTunjangLocked').addClass('d-none');
+                    $('#keteranganTunjangMax5').addClass('d-none');
+                    $('#keteranganTunjangUsiaAnak').addClass('d-none');
                 } else if (totalTertunjangLain >= 5) {
                     // Kuota 5 sudah penuh dipakai oleh anggota lain
                     $('#status_tidak_tertunjang').prop('checked', true);
                     $radioTunjang.prop('disabled', true);
                     $('#keteranganTunjangLocked').addClass('d-none');
+                    $('#keteranganTunjangMaxAnak').addClass('d-none');
                     $('#keteranganTunjangMax5').removeClass('d-none');
                     $('#keteranganTunjangUsiaAnak').addClass('d-none');
                 } else {
                     $radioTunjang.prop('disabled', false);
                     $('#keteranganTunjangLocked').addClass('d-none');
+                    $('#keteranganTunjangMaxAnak').addClass('d-none');
                     $('#keteranganTunjangMax5').addClass('d-none');
                     $('#keteranganTunjangUsiaAnak').addClass('d-none');
                 }

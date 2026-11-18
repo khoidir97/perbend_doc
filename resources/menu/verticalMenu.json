@@ -1,0 +1,30 @@
+{
+  "menu": [
+    {
+      "url": "/",
+      "name": "Dashboards",
+      "icon": "menu-icon icon-base bx bx-home-smile",
+      "slug": "dashboard"
+    },
+    {
+      "url": "dokumen",
+      "name": "Data Dokumen",
+      "icon": "menu-icon icon-base bx bx-file",
+      "slug": "dokumen"
+    },
+    {
+      "url": "skpd",
+      "name": "Data SKPD",
+      "icon": "menu-icon icon-base bx bx-buildings",
+      "slug": "skpd",
+      "adminOnly": true
+    },
+    {
+      "url": "pegawai",
+      "name": "Data Pegawai",
+      "icon": "menu-icon icon-base bx bx-id-card",
+      "slug": "pegawai",
+      "adminOnly": true
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+<?php
+
+namespace App\Models;
+
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable
+{
+    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use HasFactory, Notifiable;
+
+    protected $connection = 'mysql';
+
+    protected $table = 'users';
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'kd_skpd',
+        'kd_satker',
+        'role'
+    ];
+
+    /**
+     * Relasi ke model Skpd
+     */
+    public function skpd()
+    {
+        return $this->belongsTo(Skpd::class, 'kd_skpd', 'opd_kode');
+    }
+
+    /**
+     * Relasi ke model Satker
+     */
+    public function satker()
+    {
+        return $this->belongsTo(Satker::class, 'kd_satker', 'stk_kode_satker');
+    }
+
+    /**
+     * Alias accessor & mutator jika field dipanggil dengan kd_opd
+     */
+    public function getKdOpdAttribute()
+    {
+        return $this->kd_skpd;
+    }
+
+    public function setKdOpdAttribute($value)
+    {
+        $this->attributes['kd_skpd'] = $value;
+    }
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+}

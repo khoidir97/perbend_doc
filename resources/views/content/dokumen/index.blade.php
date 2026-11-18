@@ -324,7 +324,8 @@
                                 <small class="text-muted">Pilih pegawai bersangkutan berdasarkan SKPD.</small>
                             </div>
                         @elseif ($isOpd)
-                            {{-- Form Edit Khusus OPD: SKPD terkunci ke OPD user, dapat mengubah Satker & Pegawai di OPD-nya --}}
+                            {{-- Form Edit Khusus OPD: SKPD terkunci ke OPD user, dapat mengubah Satker & Pegawai di OPD-nya
+                            --}}
                             <div class="mb-3">
                                 <label class="form-label">SKPD / OPD</label>
                                 <input type="text" class="form-control bg-light"
@@ -482,6 +483,44 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm border-0 mb-3">
+                        <div
+                            class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0 fw-bold text-dark">
+                                    <i class="icon-base bx bx-list-ul me-1 text-primary"></i> Susunan Anggota Keluarga
+                                    Pegawai
+                                </h6>
+                                <small class="text-muted">Klik pada salah satu baris untuk melihat / mengedit rincian
+                                    data</small>
+                            </div>
+                            <span class="badge bg-label-info" id="countAnggotaKeluarga">7 Anggota Keluarga</span>
+                        </div>
+                        <div class="table-responsive text-nowrap">
+                            <table class="table table-hover table-striped mb-0 align-middle" id="tabelAnggotaKeluarga">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 50px;">Kd</th>
+                                        <th>Nama Anggota Keluarga</th>
+                                        <th>Tanggal Lahir</th>
+                                        <th>Hubungan</th>
+                                        <th>Status Tunjangan</th>
+                                        <th style="width: 90px;" class="text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyAnggotaKeluarga">
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4 text-muted">
+                                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                                            </div>
+                                            Memuat data susunan keluarga dari database kedua...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
@@ -661,27 +700,35 @@
 
                                     <!-- Keterangan Khusus Pegawai Wafat (Tabel TWafat) -->
                                     <div id="section_twafat_pegawai" class="d-none mt-2 pt-2 border-top">
-                                        <div class="d-flex align-items-center justify-content-between mb-2 p-2 rounded bg-label-danger">
+                                        <div
+                                            class="d-flex align-items-center justify-content-between mb-2 p-2 rounded bg-label-danger">
                                             <span class="small fw-bold text-danger">
-                                                <i class="icon-base bx bx-user-x me-1"></i> Rincian Kematian Pegawai (Tabel TWafat)
+                                                <i class="icon-base bx bx-user-x me-1"></i> Rincian Kematian Pegawai (Tabel
+                                                TWafat)
                                             </span>
                                             <span class="badge bg-danger">Khusus Pegawai (00)</span>
                                         </div>
                                         <div class="row g-2 mb-2">
                                             <div class="col-md-6">
-                                                <label for="twafat_tglsurat" class="form-label small fw-semibold">Tanggal Surat Kematian (TGLSURAT)</label>
-                                                <input type="date" class="form-control form-control-sm" id="twafat_tglsurat" name="twafat_tglsurat" />
+                                                <label for="twafat_tglsurat" class="form-label small fw-semibold">Tanggal
+                                                    Surat Kematian (TGLSURAT)</label>
+                                                <input type="date" class="form-control form-control-sm" id="twafat_tglsurat"
+                                                    name="twafat_tglsurat" />
                                             </div>
                                             <div class="col-md-6">
-                                                <label for="twafat_penerbit" class="form-label small fw-semibold">Instansi / RS Penerbit Surat (PENERBIT)</label>
-                                                <input type="text" class="form-control form-control-sm" id="twafat_penerbit" name="twafat_penerbit"
-                                                    placeholder="Contoh: RS SYAFIRA / DISDUKCAPIL" maxlength="40" />
+                                                <label for="twafat_penerbit" class="form-label small fw-semibold">Instansi /
+                                                    RS Penerbit Surat (PENERBIT)</label>
+                                                <input type="text" class="form-control form-control-sm" id="twafat_penerbit"
+                                                    name="twafat_penerbit" placeholder="Contoh: RS SYAFIRA / DISDUKCAPIL"
+                                                    maxlength="40" />
                                             </div>
                                         </div>
                                         <div class="row g-2">
                                             <div class="col-md-4">
-                                                <label for="twafat_jmlterusan" class="form-label small fw-semibold">Gaji Terusan (JMLTERUSAN)</label>
-                                                <select class="form-select form-select-sm" id="twafat_jmlterusan" name="twafat_jmlterusan">
+                                                <label for="twafat_jmlterusan" class="form-label small fw-semibold">Gaji
+                                                    Terusan (JMLTERUSAN)</label>
+                                                <select class="form-select form-select-sm" id="twafat_jmlterusan"
+                                                    name="twafat_jmlterusan">
                                                     <option value="4" selected>4 Bulan (Standar)</option>
                                                     <option value="0">0 Bulan (Tanpa Terusan)</option>
                                                     <option value="1">1 Bulan</option>
@@ -692,13 +739,19 @@
                                                 </select>
                                             </div>
                                             <div class="col-md-4">
-                                                <label for="twafat_tglstop" class="form-label small fw-semibold">Tanggal Stop Gaji (TGLSTOP)</label>
-                                                <input type="date" class="form-control form-control-sm" id="twafat_tglstop" name="twafat_tglstop" />
-                                                <small class="text-muted d-block" style="font-size: 0.7rem;">Otomatis tgl 1 setelah masa terusan.</small>
+                                                <label for="twafat_tglstop" class="form-label small fw-semibold">Tanggal
+                                                    Stop Gaji (TGLSTOP)</label>
+                                                <input type="date" class="form-control form-control-sm" id="twafat_tglstop"
+                                                    name="twafat_tglstop" />
+                                                <small class="text-muted d-block" style="font-size: 0.7rem;">Otomatis tgl 1
+                                                    setelah masa terusan.</small>
                                             </div>
                                             <div class="col-md-4">
-                                                <label for="twafat_kdhubkelpenerima" class="form-label small fw-semibold">Hubkel Penerima (KDHUBKELPENERIMA)</label>
-                                                <select class="form-select form-select-sm" id="twafat_kdhubkelpenerima" name="twafat_kdhubkelpenerima">
+                                                <label for="twafat_kdhubkelpenerima"
+                                                    class="form-label small fw-semibold">Hubkel Penerima
+                                                    (KDHUBKELPENERIMA)</label>
+                                                <select class="form-select form-select-sm" id="twafat_kdhubkelpenerima"
+                                                    name="twafat_kdhubkelpenerima">
                                                     <option value="">-- Pilih Hubkel --</option>
                                                     <option value="10">10 - ISTERI</option>
                                                     <option value="20">20 - SUAMI</option>
@@ -748,7 +801,7 @@
                                                     <span>Nomor Surat Aktif Kuliah (NOSKS)</span>
                                                 </span>
                                                 <!-- <small class="fw-normal text-muted">(Khusus Surat Aktif Kuliah / Sekolah
-                                                                    Anak)</small> -->
+                                                                                Anak)</small> -->
                                             </label>
                                             <div class="input-group input-group-merge">
                                                 <span class="input-group-text"><i
@@ -849,43 +902,7 @@
                     </div>
 
                     <!-- 3. Tabel Rincian Anggota Keluarga -->
-                    <div class="card shadow-sm border-0">
-                        <div
-                            class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="mb-0 fw-bold text-dark">
-                                    <i class="icon-base bx bx-list-ul me-1 text-primary"></i> Susunan Anggota Keluarga
-                                    Pegawai
-                                </h6>
-                                <small class="text-muted">Klik pada salah satu baris untuk melihat / mengedit rincian
-                                    data</small>
-                            </div>
-                            <span class="badge bg-label-info" id="countAnggotaKeluarga">7 Anggota Keluarga</span>
-                        </div>
-                        <div class="table-responsive text-nowrap">
-                            <table class="table table-hover table-striped mb-0 align-middle" id="tabelAnggotaKeluarga">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th style="width: 50px;">Kd</th>
-                                        <th>Nama Anggota Keluarga</th>
-                                        <th>Tanggal Lahir</th>
-                                        <th>Hubungan</th>
-                                        <th>Status Tunjangan</th>
-                                        <th style="width: 90px;" class="text-center">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tbodyAnggotaKeluarga">
-                                    <tr>
-                                        <td colspan="6" class="text-center py-4 text-muted">
-                                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
-                                            </div>
-                                            Memuat data susunan keluarga dari database kedua...
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+
                 </div>
 
                 <!-- Modal Footer -->
@@ -1430,13 +1447,13 @@
                 }
 
                 $tbody.html(`
-                                                                <tr>
-                                                                    <td colspan="6" class="text-center py-4 text-muted">
-                                                                        <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
-                                                                        Memuat data susunan keluarga untuk NIP <strong>${nip}</strong> dari database kedua...
-                                                                    </td>
-                                                                </tr>
-                                                            `);
+                                                                            <tr>
+                                                                                <td colspan="6" class="text-center py-4 text-muted">
+                                                                                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                                                                    Memuat data susunan keluarga untuk NIP <strong>${nip}</strong> dari database kedua...
+                                                                                </td>
+                                                                            </tr>
+                                                                        `);
 
                 $.ajax({
                     url: `{{ url('keluarga/by-nip') }}/${encodeURIComponent(nip)}`,
@@ -1447,14 +1464,14 @@
 
                         if (currentKeluargaList.length === 0) {
                             $tbody.html(`
-                                                                        <tr>
-                                                                            <td colspan="6" class="text-center py-4 text-muted">
-                                                                                <i class="icon-base bx bx-folder-open fs-3 d-block mb-1 text-secondary"></i>
-                                                                                Belum ada data anggota keluarga di database kedua untuk NIP ini.<br>
-                                                                                <small class="text-muted">Gunakan form di atas untuk menambahkan data baru.</small>
-                                                                            </td>
-                                                                        </tr>
-                                                                    `);
+                                                                                    <tr>
+                                                                                        <td colspan="6" class="text-center py-4 text-muted">
+                                                                                            <i class="icon-base bx bx-folder-open fs-3 d-block mb-1 text-secondary"></i>
+                                                                                            Belum ada data anggota keluarga di database kedua untuk NIP ini.<br>
+                                                                                            <small class="text-muted">Gunakan form di atas untuk menambahkan data baru.</small>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                `);
                             return;
                         }
 
@@ -1485,27 +1502,27 @@
                             }
 
                             html += `
-                                                                            <tr class="table-row-keluarga" data-index="${i}" style="cursor: pointer;">
-                                                                                <td><span class="badge bg-label-dark">${item.KDHUBKEL}</span></td>
-                                                                                <td>
-                                                                                    <span class="fw-bold text-dark d-block">${namaLengkap}</span>
-                                                                                    ${item.NIPSUAMIISTRI ? `<small class="text-muted"><i class="icon-base bx bx-id-card me-1"></i>Pasangan ASN: ${item.NIPSUAMIISTRI}</small>` : ''}
-                                                                                </td>
-                                                                                <td>${tglLahirFmt}</td>
-                                                                                <td><span class="badge bg-label-primary">${nmHubkel}</span></td>
-                                                                                <td>${statusBadge}</td>
-                                                                                <td class="text-center">
-                                                                                    <div class="d-inline-flex gap-1">
-                                                                                        <button type="button" class="btn btn-xs btn-icon btn-outline-primary btn-pilih-keluarga" title="Edit Baris Ini">
-                                                                                            <i class="icon-base bx bx-edit-alt"></i>
-                                                                                        </button>
-                                                                                        <button type="button" class="btn btn-xs btn-icon btn-outline-danger btn-hapus-row-keluarga" data-nip="${item.NIP}" data-kdhub="${item.KDHUBKEL}" data-nama="${item.NMKEL}" title="Hapus Data">
-                                                                                            <i class="icon-base bx bx-trash"></i>
-                                                                                        </button>
-                                                                                    </div>
-                                                                                </td>
-                                                                            </tr>
-                                                                        `;
+                                                                                        <tr class="table-row-keluarga" data-index="${i}" style="cursor: pointer;">
+                                                                                            <td><span class="badge bg-label-dark">${item.KDHUBKEL}</span></td>
+                                                                                            <td>
+                                                                                                <span class="fw-bold text-dark d-block">${namaLengkap}</span>
+                                                                                                ${item.NIPSUAMIISTRI ? `<small class="text-muted"><i class="icon-base bx bx-id-card me-1"></i>Pasangan ASN: ${item.NIPSUAMIISTRI}</small>` : ''}
+                                                                                            </td>
+                                                                                            <td>${tglLahirFmt}</td>
+                                                                                            <td><span class="badge bg-label-primary">${nmHubkel}</span></td>
+                                                                                            <td>${statusBadge}</td>
+                                                                                            <td class="text-center">
+                                                                                                <div class="d-inline-flex gap-1">
+                                                                                                    <button type="button" class="btn btn-xs btn-icon btn-outline-primary btn-pilih-keluarga" title="Edit Baris Ini">
+                                                                                                        <i class="icon-base bx bx-edit-alt"></i>
+                                                                                                    </button>
+                                                                                                    <button type="button" class="btn btn-xs btn-icon btn-outline-danger btn-hapus-row-keluarga" data-nip="${item.NIP}" data-kdhub="${item.KDHUBKEL}" data-nama="${item.NMKEL}" title="Hapus Data">
+                                                                                                        <i class="icon-base bx bx-trash"></i>
+                                                                                                    </button>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    `;
                         });
 
                         $tbody.html(html);
@@ -1513,14 +1530,14 @@
                     error: function (xhr) {
                         const errMsg = xhr.responseJSON?.message || 'Gagal memuat data keluarga dari database kedua.';
                         $tbody.html(`
-                                                                            <tr>
-                                                                                <td colspan="6" class="text-center py-4 text-danger">
-                                                                                    <i class="icon-base bx bx-error-circle fs-3 d-block mb-1"></i>
-                                                                                    <strong>Koneksi Database Kedua:</strong><br>
-                                                                                    <small>${errMsg}</small>
-                                                                                </td>
-                                                                            </tr>
-                                                                        `);
+                                                                                        <tr>
+                                                                                            <td colspan="6" class="text-center py-4 text-danger">
+                                                                                                <i class="icon-base bx bx-error-circle fs-3 d-block mb-1"></i>
+                                                                                                <strong>Koneksi Database Kedua:</strong><br>
+                                                                                                <small>${errMsg}</small>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    `);
                         $count.text('0 Anggota');
                     }
                 });
@@ -1760,6 +1777,7 @@
                 if (tglCerai || tglWafat) {
                     $('#status_tidak_tertunjang').prop('checked', true);
                     $radioTunjang.prop('disabled', true);
+                    $('#kel_kdstawin').val('1'); // Otomatis status kawin menjadi 1 - Tidak Kawin
                     $('#keteranganTunjangLocked').removeClass('d-none');
                     $('#keteranganTunjangMaxAnak').addClass('d-none');
                     $('#keteranganTunjangMax5').addClass('d-none');

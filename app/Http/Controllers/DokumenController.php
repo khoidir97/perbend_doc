@@ -221,7 +221,7 @@ class DokumenController extends Controller
         $actionsHtml = '<div class="d-inline-flex gap-1">';
 
         // Tombol Verifikasi (HANYA UNTUK ADMIN)
-        if ($isAdmin) {
+        if ($isAdmin || $isOpd) {
           if ($dok->dok_status == 1) {
             $actionsHtml .= '
               <button type="button" 

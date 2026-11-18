@@ -27,7 +27,7 @@ class KeluargaController extends Controller
             // Format khusus kode 11 - 19
             $list->transform(function ($item) {
                 $kd = trim($item->KDHUBKEL);
-                if (is_numeric($kd) && (int)$kd >= 11 && (int)$kd <= 19) {
+                if (is_numeric($kd) && (int) $kd >= 11 && (int) $kd <= 19) {
                     $anakKe = (int) substr($kd, 1);
                     $item->NMHUBKEL_LABEL = "ANAK KE {$anakKe}";
                 } else {
@@ -79,7 +79,7 @@ class KeluargaController extends Controller
                 $item->nosuratkematian = $ket ? $ket->nosuratkematian : null;
                 $item->twafat = ($kd === '00') ? $wafatPegawai : null;
 
-                if (is_numeric($kd) && (int)$kd >= 11 && (int)$kd <= 19) {
+                if (is_numeric($kd) && (int) $kd >= 11 && (int) $kd <= 19) {
                     $anakKe = (int) substr($kd, 1);
                     $item->label_hubkel = "ANAK KE {$anakKe}";
                 } elseif ($item->hubkel) {
@@ -190,9 +190,75 @@ class KeluargaController extends Controller
             }
 
             // Jika Tanggal Cerai atau Tanggal Wafat terisi, pastikan KDTUNJANG otomatis 1 (Tidak Tertunjang)
+            // dan kdstawin otomatis 1 (Tidak Kawin)
             $kdTunjang = isset($validated['KDTUNJANG']) ? (int) $validated['KDTUNJANG'] : 1;
             if (!empty($validated['TGLCERAI']) || !empty($validated['TGLWAFAT'])) {
                 $kdTunjang = 1;
+                $validated['kdstawin'] = 1;
+            }
+
+            // KETENTUAN KHUSUS STATUS KAWIN PEGAWAI LAKI-LAKI:
+            // Jika pegawai yang bersangkutan adalah laki-laki (KDJENKEL = 1),
+            // dan istrinya wafat/cerai (ditandai dengan TGLWAFAT atau TGLCERAI diisi),
+            // maka kdstawin pegawai laki-laki tersebut auto berubah jadi kdstawin = 1 di tabel keluarga & mstpegawai
+            $isHubIstri = in_array(trim($kdhubkel), ['10', '20', '30', '40']);
+            $isPegawai = (trim($kdhubkel) === '00');
+            $tglCeraiWafatTerisi = (!empty($validated['TGLCERAI']) || !empty($validated['TGLWAFAT']));
+
+            // Cek apakah pegawai yang bersangkutan adalah laki-laki (KDJENKEL = 1)
+            $pegawaiDb2 = PegawaiDB2::where('NIP', $nip)->first();
+            $pegawaiKelRecord = Keluarga::where('NIP', $nip)->where('KDHUBKEL', '00')->first();
+            $isPegawaiLakiLaki = false;
+            if ($isPegawai && isset($validated['KDJENKEL']) && (int) $validated['KDJENKEL'] === 1) {
+                $isPegawaiLakiLaki = true;
+            } elseif ($pegawaiDb2 && (int) $pegawaiDb2->KDJENKEL === 1) {
+                $isPegawaiLakiLaki = true;
+            } elseif ($pegawaiKelRecord && (int) $pegawaiKelRecord->KDJENKEL === 1) {
+                $isPegawaiLakiLaki = true;
+            }
+
+            // Jika sedang menginput/mengedit data istri dan tanggal cerai / wafat terisi pada pegawai laki-laki
+            if ($isHubIstri && $tglCeraiWafatTerisi && $isPegawaiLakiLaki) {
+                // Auto ubah kdstawin pegawai laki-laki tersebut di tabel keluarga (KDHUBKEL = '00') menjadi 1 (Tidak Kawin / Duda)
+                Keluarga::where('NIP', $nip)
+                    ->where('KDHUBKEL', '00')
+                    ->update([
+                        'kdstawin' => 1,
+                        'UPDSTAMP' => now(),
+                    ]);
+
+                // Auto ubah KDSTAWIN pegawai laki-laki tersebut di tabel mstpegawai menjadi 1
+                PegawaiDB2::where('NIP', $nip)
+                    ->update([
+                        'KDSTAWIN' => 1,
+                        'UPDSTAMP' => now(),
+                    ]);
+            }
+
+            // Jika sedang menginput/mengedit data pegawai itu sendiri (KDHUBKEL = '00') dan pegawai adalah laki-laki
+            if ($isPegawai && $isPegawaiLakiLaki) {
+                if (!empty($validated['TGLCERAI'])) {
+                    $validated['kdstawin'] = 1;
+                } else {
+                    $istriWafatAtauCerai = Keluarga::where('NIP', $nip)
+                        ->whereIn('KDHUBKEL', ['10', '20', '30', '40'])
+                        ->where(function ($q) {
+                            $q->whereNotNull('TGLCERAI')->where('TGLCERAI', '!=', '')
+                              ->orWhereNotNull('TGLWAFAT')->where('TGLWAFAT', '!=', '');
+                        })
+                        ->exists();
+
+                    $istriTertunjang = Keluarga::where('NIP', $nip)
+                        ->whereIn('KDHUBKEL', ['10', '20', '30', '40'])
+                        ->where('KDTUNJANG', 2)
+                        ->whereNull('TGLCERAI')
+                        ->whereNull('TGLWAFAT')
+                        ->exists();
+
+                    if ($istriWafatAtauCerai && !$istriTertunjang) {
+                        $validated['kdstawin'] = 1;
+                    }
+                }
             }
 
             // Validasi Usia Anak untuk Status Tertunjang:
@@ -408,16 +474,51 @@ class KeluargaController extends Controller
             $jAnak = 0;
 
             foreach ($keluargaList as $k) {
-                if ((int)$k->KDTUNJANG === 2) {
+                if ((int) $k->KDTUNJANG === 2) {
                     $hub = trim($k->KDHUBKEL);
                     // Istri / Suami (KDHUBKEL = 10, 20, 30, 40)
                     if (in_array($hub, ['10', '20', '30', '40'])) {
                         $jIstri++;
-                    } 
+                    }
                     // Anak (KDHUBKEL = 11-19, 21-29, 31-39, 41-49, atau anak tiri/angkat 1A-1G, 2A-2G, dst)
                     elseif (preg_match('/^[1-5][1-9A-G]$/', $hub)) {
                         $jAnak++;
                     }
+                }
+            }
+
+            // Ambil status kdstawin aktual milik pegawai (KDHUBKEL = '00')
+            $pgwKel = Keluarga::where('NIP', $cleanNip)->where('KDHUBKEL', '00')->first();
+            $pgwDb2 = PegawaiDB2::where('NIP', $cleanNip)->first();
+
+            $kdstawinPegawai = 1;
+            if (isset($keluargaPayload['KDHUBKEL']) && trim($keluargaPayload['KDHUBKEL']) === '00' && isset($keluargaPayload['kdstawin'])) {
+                $kdstawinPegawai = (int) $keluargaPayload['kdstawin'];
+            } elseif ($pgwKel && isset($pgwKel->kdstawin)) {
+                $kdstawinPegawai = (int) $pgwKel->kdstawin;
+            } elseif ($pgwDb2 && isset($pgwDb2->KDSTAWIN)) {
+                $kdstawinPegawai = (int) $pgwDb2->KDSTAWIN;
+            }
+
+            // Cek apakah pegawai adalah laki-laki (KDJENKEL = 1) dan istrinya cerai/wafat
+            $isPegawaiLaki = false;
+            if ($pgwDb2 && (int) $pgwDb2->KDJENKEL === 1) {
+                $isPegawaiLaki = true;
+            } elseif ($pgwKel && (int) $pgwKel->KDJENKEL === 1) {
+                $isPegawaiLaki = true;
+            }
+
+            if ($isPegawaiLaki && $jIstri === 0) {
+                $istriMeninggalAtauCerai = Keluarga::where('NIP', $cleanNip)
+                    ->whereIn('KDHUBKEL', ['10', '20', '30', '40'])
+                    ->where(function ($q) {
+                        $q->whereNotNull('TGLCERAI')->where('TGLCERAI', '!=', '')
+                            ->orWhereNotNull('TGLWAFAT')->where('TGLWAFAT', '!=', '');
+                    })
+                    ->exists();
+
+                if ($istriMeninggalAtauCerai) {
+                    $kdstawinPegawai = 1;
                 }
             }
 
@@ -433,7 +534,7 @@ class KeluargaController extends Controller
                     ->update([
                         'JISTRI' => $jIstri,
                         'JANAK' => $jAnak,
-                        'kdstawin' => $keluargaPayload['kdstawin'] ?? $hist->kdstawin ?? 1,
+                        'kdstawin' => $kdstawinPegawai,
                         'TGLUPDATE' => Carbon::now(),
                     ]);
             } else {
@@ -447,7 +548,7 @@ class KeluargaController extends Controller
                     'TGLUPDATE' => Carbon::now(),
                     'KDDATI1' => $keluargaPayload['KDDATI1'] ?? '04',
                     'KDDATI2' => $keluargaPayload['KDDATI2'] ?? '11',
-                    'kdstawin' => $keluargaPayload['kdstawin'] ?? 1,
+                    'kdstawin' => $kdstawinPegawai,
                     'TMT' => null,
                 ]);
             }
@@ -459,6 +560,12 @@ class KeluargaController extends Controller
                 'JANAK' => $jAnak,
                 'UPDSTAMP' => Carbon::now(),
             ];
+
+            // Jika pegawai laki-laki dan status kawinnya menjadi 1 (karena istri wafat/cerai),
+            // pastikan KDSTAWIN di mstpegawai ikut terupdate menjadi 1
+            if ($isPegawaiLaki && $kdstawinPegawai === 1) {
+                $updatePegawai['KDSTAWIN'] = 1;
+            }
 
             // KUNCI DATA PEGAWAI:
             // Kolom identitas pegawai (KDJENKEL, KDSTAWIN, NAMA, GLRDEPAN, GLRBELAKANG, TGLLHR)

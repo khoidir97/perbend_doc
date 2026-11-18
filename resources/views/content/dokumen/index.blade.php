@@ -485,24 +485,32 @@
                                 </div>
 
                                 <!-- Baris 2: Tanggal Lahir, Jenis Kelamin, Status Kawin, Pekerjaan -->
+                                <!-- Baris 2: Tanggal Lahir, No Akta Lahir, Jenis Kelamin, Status Kawin, Pekerjaan -->
                                 <div class="row g-2 mb-3">
                                     <div class="col-md-3">
-                                        <label for="kel_tgl_lahir" class="form-label small fw-semibold">Tanggal Lahir<span
+                                        <label for="kel_tgl_lahir" class="form-label small fw-semibold">Tanggal Lahir <span
                                                 class="text-danger">*</span></label>
                                         <input type="date" class="form-control form-control-sm" id="kel_tgl_lahir"
                                             name="TGLLHR" required />
                                     </div>
                                     <div class="col-md-3">
+                                        <label for="kel_no_akta_lahir" class="form-label small fw-semibold">
+                                            <i class="icon-base bx bx-certification me-1 text-info"></i>No. Akta Kelahiran
+                                        </label>
+                                        <input type="text" class="form-control form-control-sm" id="kel_no_akta_lahir"
+                                            name="noaktalahir" placeholder="Contoh: 1234/DIS/2020" maxlength="100" />
+                                    </div>
+                                    <div class="col-md-2">
                                         <label for="kel_jenis_kelamin" class="form-label small fw-semibold">Jenis Kelamin
                                             <span class="text-danger">*</span></label>
                                         <select class="form-select form-select-sm" id="kel_jenis_kelamin" name="KDJENKEL"
                                             required>
-                                            <option value="">-- Pilih Gender --</option>
+                                            <option value="">-- Pilih --</option>
                                             <option value="1">1 - Laki-laki</option>
                                             <option value="2">2 - Perempuan</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <label for="kel_kdstawin" class="form-label small fw-semibold">Status Kawin
                                             <span class="text-danger">*</span></label>
                                         <select class="form-select form-select-sm" id="kel_kdstawin" name="kdstawin"
@@ -511,10 +519,10 @@
                                             <option value="2">2 - Kawin</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <label for="kel_pekerjaan" class="form-label small fw-semibold">Pekerjaan</label>
                                         <input type="text" class="form-control form-control-sm" id="kel_pekerjaan"
-                                            name="PEKERJAAN" placeholder="Contoh: PNS, Pelajar" maxlength="40" />
+                                            name="PEKERJAAN" placeholder="PNS, Pelajar, dsb" maxlength="40" />
                                     </div>
                                 </div>
 
@@ -528,7 +536,7 @@
                                         <small class="text-danger fw-semibold">*) Lengkapi NIP jika Suami/Istri berstatus
                                             ASN</small>
                                     </div>
-                                    <div class="row g-2">
+                                    <div class="row g-2 mb-2">
                                         <div class="col-md-6">
                                             <label for="kel_nip_pasangan" class="form-label small fw-semibold">NIP Istri /
                                                 Suami</label>
@@ -543,35 +551,49 @@
                                             </div>
                                         </div>
                                         <div class="col-md-6">
-                                            <label for="kel_tgl_nikah" class="form-label small fw-semibold">Tanggal
-                                                Nikah</label>
+                                            <label for="kel_tgl_cerai" class="form-label small fw-semibold">Tanggal Cerai</label>
+                                            <input type="date" class="form-control form-control-sm" id="kel_tgl_cerai"
+                                                name="TGLCERAI" />
+                                        </div>
+                                    </div>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-md-6">
+                                            <label for="kel_tgl_nikah" class="form-label small fw-semibold">Tanggal Nikah</label>
                                             <input type="date" class="form-control form-control-sm" id="kel_tgl_nikah"
                                                 name="TGLNIKAH" />
                                         </div>
                                         <div class="col-md-6">
-                                            <label for="kel_tgl_cerai" class="form-label small fw-semibold">Tanggal
-                                                Cerai</label>
-                                            <input type="date" class="form-control form-control-sm" id="kel_tgl_cerai"
-                                                name="TGLCERAI" />
+                                            <label for="kel_no_surat_nikah" class="form-label small fw-semibold">
+                                                <i class="icon-base bx bx-file me-1 text-primary"></i>Nomor Surat / Buku Nikah
+                                            </label>
+                                            <input type="text" class="form-control form-control-sm" id="kel_no_surat_nikah"
+                                                name="nosuratnikah" placeholder="Contoh: No. Buku Nikah / Akta Nikah" maxlength="100" />
                                         </div>
+                                    </div>
+                                    <div class="row g-2">
                                         <div class="col-md-6">
-                                            <label for="kel_tgl_wafat" class="form-label small fw-semibold">Tanggal
-                                                Wafat</label>
+                                            <label for="kel_tgl_wafat" class="form-label small fw-semibold">Tanggal Wafat</label>
                                             <input type="date" class="form-control form-control-sm" id="kel_tgl_wafat"
                                                 name="TGLWAFAT" />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="kel_no_surat_kematian" class="form-label small fw-semibold">
+                                                <i class="icon-base bx bx-file-blank me-1 text-danger"></i>Nomor Surat / Akta Kematian
+                                            </label>
+                                            <input type="text" class="form-control form-control-sm" id="kel_no_surat_kematian"
+                                                name="nosuratkematian" placeholder="Contoh: No. Akta Kematian / Keterangan Wafat" maxlength="100" />
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Baris 4: Keterangan SKS Anak & Dokumen Pendukung (NOSKS) -->
+                                <!-- Baris 4: Keterangan SKS Anak (NOSKS) -->
                                 <div class="border rounded p-3 mb-3 bg-white"
                                     style="border-left: 4px solid #03c3ec !important;">
                                     <div class="d-flex align-items-center justify-content-between mb-2">
                                         <span class="small fw-bold text-info">
-                                            <i class="icon-base bx bx-file-blank me-1"></i> Legalitas Dokumen Pendukung &
-                                            SKS Anak
+                                            <i class="icon-base bx bx-book-reader me-1"></i> Surat Keterangan Aktif Kuliah (SKS) Anak
                                         </span>
-                                        <span class="badge bg-label-info" id="badgeSuratStatus">Dokumen Pendukung</span>
+                                        <span class="badge bg-label-info">SKS Kuliah / Sekolah</span>
                                     </div>
                                     <div class="row g-2 mb-2">
                                         <div class="col-md-6">
@@ -594,27 +616,22 @@
                                     <div class="row g-2">
                                         <div class="col-12">
                                             <label for="kel_no_surat_sks"
-                                                class="form-label small fw-bold text-dark d-flex align-items-center justify-content-between mb-1"
-                                                id="lbl_no_surat">
+                                                class="form-label small fw-bold text-dark d-flex align-items-center justify-content-between mb-1">
                                                 <span>
-                                                    <i class="icon-base bx bx-barcode me-1 text-primary"></i>
-                                                    <span id="text_lbl_no_surat">Nomor Surat / Dokumen Pendukung
-                                                        (NOSKS)</span>
+                                                    <i class="icon-base bx bx-barcode me-1 text-info"></i>
+                                                    <span>Nomor Surat Aktif Kuliah (NOSKS)</span>
                                                 </span>
-                                                <small class="fw-normal text-muted" id="hint_lbl_no_surat">(Surat Kematian /
-                                                    Akta Cerai / SKS Kuliah)</small>
+                                                <small class="fw-normal text-muted">(Khusus Surat Aktif Kuliah / Sekolah Anak)</small>
                                             </label>
                                             <div class="input-group input-group-merge">
-                                                <span class="input-group-text"><i class="icon-base bx bx-certification"
-                                                        id="icon_no_surat"></i></span>
+                                                <span class="input-group-text"><i class="icon-base bx bx-book-reader text-info"></i></span>
                                                 <input type="text" class="form-control form-control-sm"
                                                     id="kel_no_surat_sks" name="NOSKS"
-                                                    placeholder="Contoh: No. Surat Kematian / No. Akta Cerai / No. Surat Keterangan Kampus"
+                                                    placeholder="Contoh: 123/UN.1/AK/2026 atau No. Surat Keterangan Kampus"
                                                     maxlength="50" />
                                             </div>
-                                            <small class="text-muted mt-1 d-block" id="subtext_no_surat">
-                                                Nomor surat ini digunakan secara terpadu untuk nomor akta kematian, akta
-                                                cerai, ataupun surat aktif kuliah anak.
+                                            <small class="text-muted mt-1 d-block">
+                                                Nomor surat ini disimpan pada field <code>NOSKS</code> di tabel keluarga (khusus untuk anak kuliah usia 21–25 tahun).
                                             </small>
                                         </div>
                                     </div>
@@ -661,6 +678,12 @@
                                         <small class="text-danger mt-1 d-none" id="keteranganTunjangLocked">
                                             <i class="icon-base bx bx-lock-alt me-1"></i>Status otomatis <strong>1 - TIDAK
                                                 TERTUNJANG</strong> dan dikunci karena Tanggal Cerai / Wafat terisi.
+                                        </small>
+                                        <small class="text-warning mt-1 d-none" id="keteranganTunjangMax5">
+                                            <i class="icon-base bx bx-error-circle me-1"></i>Kuota tunjangan keluarga sudah mencapai batas maksimal (5 orang tertunjang). Pilihan status tunjangan dikunci ke <strong>1 - TIDAK TERTUNJANG</strong>.
+                                        </small>
+                                        <small class="text-danger mt-1 d-none" id="keteranganTunjangUsiaAnak">
+                                            <i class="icon-base bx bx-user-x me-1"></i><span id="textTunjangUsiaAnak">Anak usia 21 tahun ke atas tidak dapat ditunjang kecuali memiliki Surat Aktif Kuliah (SKS) maksimal 25 tahun.</span>
                                         </small>
                                     </div>
                                     <div class="col-md-5 text-md-end">
@@ -1432,13 +1455,16 @@
                 $('#kel_nama').val(item.NMKEL || '');
                 $('#kel_gelar_belakang').val(item.GLRBELAKANG || '');
                 $('#kel_tgl_lahir').val(item.TGLLHR ? item.TGLLHR.substring(0, 10) : '');
+                $('#kel_no_akta_lahir').val(item.noaktalahir || '');
                 $('#kel_jenis_kelamin').val(item.KDJENKEL || '1');
                 $('#kel_kdstawin').val(item.kdstawin || '1');
                 $('#kel_pekerjaan').val(item.PEKERJAAN || '');
                 $('#kel_nip_pasangan').val(item.NIPSUAMIISTRI || '');
                 $('#kel_tgl_nikah').val(item.TGLNIKAH ? item.TGLNIKAH.substring(0, 10) : '');
+                $('#kel_no_surat_nikah').val(item.nosuratnikah || '');
                 $('#kel_tgl_cerai').val(item.TGLCERAI ? item.TGLCERAI.substring(0, 10) : '');
                 $('#kel_tgl_wafat').val(item.TGLWAFAT ? item.TGLWAFAT.substring(0, 10) : '');
+                $('#kel_no_surat_kematian').val(item.nosuratkematian || '');
                 $('#kel_tgl_awal_sks').val(item.TGLSKS ? item.TGLSKS.substring(0, 10) : '');
                 if (item.TGLSKS) {
                     $('#kel_tgl_akhir_sks').val(item.TATSKS ? item.TATSKS.substring(0, 10) : '').prop('disabled', true);
@@ -1446,13 +1472,9 @@
                     $('#kel_tgl_akhir_sks').val('').prop('disabled', true);
                 }
                 $('#kel_no_surat_sks').val(item.NOSKS || '');
-                updateSmartSuratLabel();
-
                 // Status Tunjangan (KDTUNJANG: 0 = TIDAK TERTUNJANG, 1 = TERTUNJANG, 2 = CALON TERTUNJANG, 3 = TERCATAT)
                 if (item.TGLCERAI || item.TGLWAFAT) {
                     $('#status_tidak_tertunjang').prop('checked', true);
-                    $('input[name="KDTUNJANG"]').prop('disabled', true);
-                    $('#keteranganTunjangLocked').removeClass('d-none');
                 } else if (item.KDTUNJANG == 1 || item.KDTUNJANG === '1') {
                     $('#status_tidak_tertunjang').prop('checked', true);
                 } else if (item.KDTUNJANG == 2 || item.KDTUNJANG === '2') {
@@ -1462,6 +1484,7 @@
                 } else {
                     $('#status_tidak_tertunjang').prop('checked', true);
                 }
+                updateSmartSuratLabel();
 
                 $('#badgeFormMode').text(`Mode: Edit Data (${item.NMKEL})`).removeClass('bg-label-primary').addClass('bg-label-warning');
 
@@ -1479,6 +1502,10 @@
                 $('#formInputKeluarga')[0].reset();
                 $('#kel_old_kdhubkel').val('');
                 $('#kel_nip').val(nip);
+                $('#kel_no_akta_lahir').val('');
+                $('#kel_no_surat_nikah').val('');
+                $('#kel_no_surat_kematian').val('');
+                $('#kel_no_surat_sks').val('');
                 $('#kel_kdstawin').val('1');
                 $('#kel_jenis_kelamin').val('1');
                 $('#kel_tgl_awal_sks').val('');
@@ -1511,71 +1538,102 @@
                 updateSmartSuratLabel();
             });
 
-            // Smart Dynamic Label & Placeholder untuk Nomor Dokumen Pendukung (NOSKS)
+            // Logika Otomatisasi Status Tunjangan Keluarga
             function updateSmartSuratLabel() {
                 const tglWafat = $('#kel_tgl_wafat').val();
                 const tglCerai = $('#kel_tgl_cerai').val();
                 const tglSks = $('#kel_tgl_awal_sks').val();
                 const hubkel = $('#kel_hub_keluarga').val();
 
-                const $lblText = $('#text_lbl_no_surat');
-                const $hint = $('#hint_lbl_no_surat');
-                const $subtext = $('#subtext_no_surat');
-                const $input = $('#kel_no_surat_sks');
-                const $badge = $('#badgeSuratStatus');
-                const $icon = $('#icon_no_surat');
-
-                // Prioritas 1: Jika Tanggal Wafat terisi
-                if (tglWafat) {
-                    $lblText.text('Nomor Surat / Akta Kematian (NOSKS)');
-                    $hint.text('(Kematian)');
-                    $subtext.html('<span class="text-danger fw-semibold"><i class="icon-base bx bx-info-circle me-1"></i>Masukkan nomor akta kematian / surat keterangan kematian resmi.</span>');
-                    $input.attr('placeholder', 'Contoh: 474.3/123/KM/2026 atau No. Akta Kematian');
-                    $badge.text('Akta Kematian').removeClass('bg-label-info bg-label-warning bg-label-secondary').addClass('bg-label-danger');
-                    $icon.attr('class', 'icon-base bx bx-bookmark text-danger');
-                }
-                // Prioritas 2: Jika Tanggal Cerai terisi
-                else if (tglCerai) {
-                    $lblText.text('Nomor Akta / Putusan Cerai (NOSKS)');
-                    $hint.text('(Perceraian)');
-                    $subtext.html('<span class="text-warning fw-semibold"><i class="icon-base bx bx-info-circle me-1"></i>Masukkan nomor akta perceraian / putusan pengadilan agama.</span>');
-                    $input.attr('placeholder', 'Contoh: No. Akta Cerai: 0123/AC/2026/PA.Plk');
-                    $badge.text('Akta Perceraian').removeClass('bg-label-info bg-label-danger bg-label-secondary').addClass('bg-label-warning');
-                    $icon.attr('class', 'icon-base bx bx-file text-warning');
-                }
-                // Prioritas 3: Jika Tanggal Kuliah/SKS terisi atau Hubkel adalah Anak (11-19 atau 1A-1C)
-                else if (tglSks || (hubkel && (hubkel.startsWith('1') || hubkel === 'ANAK'))) {
-                    $lblText.text('Nomor Surat Keterangan Kuliah / SKS (NOSKS)');
-                    $hint.text('(SKS Anak)');
-                    $subtext.html('<span class="text-info fw-semibold"><i class="icon-base bx bx-info-circle me-1"></i>Masukkan nomor surat keterangan aktif kuliah / sekolah dari kampus/sekolah.</span>');
-                    $input.attr('placeholder', 'Contoh: 123/UN.1/AK/2026');
-                    $badge.text('SKS Kuliah/Sekolah').removeClass('bg-label-warning bg-label-danger bg-label-secondary').addClass('bg-label-info');
-                    $icon.attr('class', 'icon-base bx bx-book-reader text-info');
-                }
-                // Default
-                else {
-                    $lblText.text('Nomor Surat / Dokumen Pendukung (NOSKS)');
-                    $hint.text('(Surat Kematian / Akta Cerai / SKS Kuliah)');
-                    $subtext.text('Nomor surat ini digunakan secara terpadu untuk nomor akta kematian, akta cerai, ataupun surat aktif kuliah anak.');
-                    $input.attr('placeholder', 'Contoh: No. Surat Kematian / No. Akta Cerai / No. Surat Keterangan Kampus');
-                    $badge.text('Dokumen Pendukung').removeClass('bg-label-warning bg-label-danger').addClass('bg-label-info');
-                    $icon.attr('class', 'icon-base bx bx-certification text-primary');
-                }
-
-                // Logika Otomatis Status Tunjangan: Jika Tanggal Cerai atau Wafat terisi
+                // Logika Otomatis Status Tunjangan:
+                // 1. Jika Tanggal Cerai atau Wafat terisi -> Kunci ke Tidak Tertunjang
+                // 2. Jika Hubungan adalah Anak:
+                //    - Usia > 25 tahun -> Kunci ke Tidak Tertunjang
+                //    - Usia >= 21 tahun tanpa TGLSKS -> Kunci ke Tidak Tertunjang (jika TGLSKS diisi, diizinkan s/d 25 tahun)
+                // 3. Jika kuota tertunjang (KDTUNJANG = 2) dalam keluarga sudah mencapai 5 orang:
+                //    - Untuk tambah baru: tidak boleh memilih tertunjang (kunci ke Tidak Tertunjang).
+                //    - Untuk edit: jika item ini sebelumnya BUKAN tertunjang, kunci ke Tidak Tertunjang.
                 const $radioTunjang = $('input[name="KDTUNJANG"]');
+                const editingOldKd = ($('#kel_old_kdhubkel').val() || '').trim();
+
+                // Hitung berapa anggota keluarga yang saat ini KDTUNJANG == 2 (selain item yang sedang diedit jika sedang edit)
+                let totalTertunjangLain = 0;
+                if (currentKeluargaList && currentKeluargaList.length > 0) {
+                    $.each(currentKeluargaList, function (_, k) {
+                        const kKd = (k.KDHUBKEL ? String(k.KDHUBKEL).trim() : '');
+                        // Jika sedang edit, jangan hitung anggota yang sedang diedit
+                        if (editingOldKd && kKd === editingOldKd) {
+                            return;
+                        }
+                        if (String(k.KDTUNJANG) === '2') {
+                            totalTertunjangLain++;
+                        }
+                    });
+                }
+
+                // Cek batasan usia untuk anak
+                const cleanHubkel = (hubkel || '').trim().toUpperCase();
+                const isAnak = /^[1-5][1-9A-G]$/.test(cleanHubkel);
+                const tglLahirVal = $('#kel_tgl_lahir').val();
+                let isUsiaAnakTerkunci = false;
+                let pesanUsiaAnak = '';
+
+                if (isAnak && tglLahirVal) {
+                    const parts = tglLahirVal.split('-');
+                    if (parts.length === 3) {
+                        const y = parseInt(parts[0], 10);
+                        const m = parseInt(parts[1], 10) - 1;
+                        const d = parseInt(parts[2], 10);
+                        const dob = new Date(y, m, d);
+                        if (!isNaN(dob.getTime())) {
+                            const today = new Date();
+                            let age = today.getFullYear() - dob.getFullYear();
+                            const monthDiff = today.getMonth() - dob.getMonth();
+                            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                                age--;
+                            }
+
+                            if (age > 25) {
+                                isUsiaAnakTerkunci = true;
+                                pesanUsiaAnak = `Usia anak sudah melebihi 25 tahun (${age} tahun). Pilihan status tunjangan dikunci ke 1 - TIDAK TERTUNJANG.`;
+                            } else if (age >= 21 && !tglSks) {
+                                isUsiaAnakTerkunci = true;
+                                pesanUsiaAnak = `Anak usia ${age} tahun (≥ 21 tahun) tidak dapat ditunjang kecuali memiliki Tanggal Surat Keterangan Kuliah (TGLSKS) aktif (maksimal s/d usia 25 tahun).`;
+                            }
+                        }
+                    }
+                }
+
                 if (tglCerai || tglWafat) {
                     $('#status_tidak_tertunjang').prop('checked', true);
                     $radioTunjang.prop('disabled', true);
                     $('#keteranganTunjangLocked').removeClass('d-none');
+                    $('#keteranganTunjangMax5').addClass('d-none');
+                    $('#keteranganTunjangUsiaAnak').addClass('d-none');
+                } else if (isUsiaAnakTerkunci) {
+                    $('#status_tidak_tertunjang').prop('checked', true);
+                    $radioTunjang.prop('disabled', true);
+                    $('#textTunjangUsiaAnak').text(pesanUsiaAnak);
+                    $('#keteranganTunjangUsiaAnak').removeClass('d-none');
+                    $('#keteranganTunjangLocked').addClass('d-none');
+                    $('#keteranganTunjangMax5').addClass('d-none');
+                } else if (totalTertunjangLain >= 5) {
+                    // Kuota 5 sudah penuh dipakai oleh anggota lain
+                    $('#status_tidak_tertunjang').prop('checked', true);
+                    $radioTunjang.prop('disabled', true);
+                    $('#keteranganTunjangLocked').addClass('d-none');
+                    $('#keteranganTunjangMax5').removeClass('d-none');
+                    $('#keteranganTunjangUsiaAnak').addClass('d-none');
                 } else {
                     $radioTunjang.prop('disabled', false);
                     $('#keteranganTunjangLocked').addClass('d-none');
+                    $('#keteranganTunjangMax5').addClass('d-none');
+                    $('#keteranganTunjangUsiaAnak').addClass('d-none');
                 }
             }
 
             // Event listener perubahan pada field tanggal terkait dan hubkel untuk update smart label
-            $('#kel_tgl_wafat, #kel_tgl_cerai, #kel_hub_keluarga').on('change input', function () {
+            $('#kel_tgl_wafat, #kel_tgl_cerai, #kel_hub_keluarga, #kel_tgl_lahir').on('change input', function () {
                 updateSmartSuratLabel();
             });
 
@@ -1611,6 +1669,7 @@
                                 if (p.TGLLHR && !$('#kel_tgl_lahir').val()) $('#kel_tgl_lahir').val(p.TGLLHR.substring(0, 10));
                                 if (p.PEKERJAAN && !$('#kel_pekerjaan').val()) $('#kel_pekerjaan').val(p.PEKERJAAN);
                                 if (p.TGLNIKAH && !$('#kel_tgl_nikah').val()) $('#kel_tgl_nikah').val(p.TGLNIKAH.substring(0, 10));
+                                if (p.nosuratnikah && !$('#kel_no_surat_nikah').val()) $('#kel_no_surat_nikah').val(p.nosuratnikah);
                             }
                         }
                     },

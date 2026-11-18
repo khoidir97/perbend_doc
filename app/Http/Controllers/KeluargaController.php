@@ -9,6 +9,7 @@ use App\Models\Keluarga;
 use App\Models\Hubkel;
 use App\Models\HistorisJiwa;
 use App\Models\PegawaiDB2;
+use App\Models\KeluargaKeterangan;
 use Carbon\Carbon;
 
 class KeluargaController extends Controller
@@ -60,9 +61,19 @@ class KeluargaController extends Controller
                 ->orderBy('KDHUBKEL', 'asc')
                 ->get();
 
-            // Format keterangan hubungan keluarga untuk 11 - 19
-            $keluarga->transform(function ($item) {
+            // Ambil data dokumen keterangan keluarga (nosuratnikah, noaktalahir, nosuratkematian)
+            $keteranganList = KeluargaKeterangan::where('nip', $cleanNip)->get()->keyBy(function ($k) {
+                return trim($k->kdhubkel);
+            });
+
+            // Format keterangan hubungan keluarga dan sertakan nomor dokumen pendukung
+            $keluarga->transform(function ($item) use ($keteranganList) {
                 $kd = trim($item->KDHUBKEL);
+                $ket = $keteranganList->get($kd);
+                $item->nosuratnikah = $ket ? $ket->nosuratnikah : null;
+                $item->noaktalahir = $ket ? $ket->noaktalahir : null;
+                $item->nosuratkematian = $ket ? $ket->nosuratkematian : null;
+
                 if (is_numeric($kd) && (int)$kd >= 11 && (int)$kd <= 19) {
                     $anakKe = (int) substr($kd, 1);
                     $item->label_hubkel = "ANAK KE {$anakKe}";
@@ -117,6 +128,9 @@ class KeluargaController extends Controller
             'TGLSKS' => ['nullable', 'date'],
             'TATSKS' => ['nullable', 'date'],
             'NOSKS' => ['nullable', 'string', 'max:50'],
+            'nosuratnikah' => ['nullable', 'string', 'max:100'],
+            'noaktalahir' => ['nullable', 'string', 'max:100'],
+            'nosuratkematian' => ['nullable', 'string', 'max:100'],
             'KDTUNJANG' => ['nullable', 'integer'],
             'NIPSUAMIISTRI' => ['nullable', 'string', 'max:18'],
             'PEKERJAAN' => ['nullable', 'string', 'max:40'],
@@ -171,8 +185,40 @@ class KeluargaController extends Controller
                 $kdTunjang = 1;
             }
 
-            // Hapus OLD_KDHUBKEL dari payload penyimpanan
-            unset($validated['OLD_KDHUBKEL']);
+            // Validasi Usia Anak untuk Status Tertunjang:
+            // Anak tidak boleh tertunjang jika usianya >= 21 tahun, kecuali TGLSKS terisi (maksimal sampai usia 25 tahun). Lebih dari 25 tahun tidak boleh tertunjang.
+            $isAnak = (bool) preg_match('/^[1-5][1-9A-G]$/i', $kdhubkel);
+            if ($isAnak && !empty($validated['TGLLHR'])) {
+                $usia = Carbon::parse($validated['TGLLHR'])->age;
+                if ($usia > 25) {
+                    $kdTunjang = 1;
+                } elseif ($usia >= 21 && empty($validated['TGLSKS'])) {
+                    $kdTunjang = 1;
+                }
+            }
+
+            // Validasi Maksimal 5 Tertunjang per Keluarga:
+            // Jika user memilih Tertunjang (KDTUNJANG = 2), periksa apakah kuota 5 orang sudah penuh
+            if ($kdTunjang === 2) {
+                $countTertunjangLain = Keluarga::where('NIP', $nip)
+                    ->where('KDTUNJANG', 2)
+                    ->when($targetQueryKd, function ($q) use ($targetQueryKd) {
+                        $q->where('KDHUBKEL', '!=', $targetQueryKd);
+                    })
+                    ->count();
+
+                if ($countTertunjangLain >= 5) {
+                    $kdTunjang = 1; // Kunci otomatis menjadi Tidak Tertunjang karena sudah mencapai batas 5 orang
+                }
+            }
+
+            // Ambil data untuk tabel keluarga_keterangan
+            $nosuratnikah = !empty($validated['nosuratnikah']) ? trim($validated['nosuratnikah']) : null;
+            $noaktalahir = !empty($validated['noaktalahir']) ? trim($validated['noaktalahir']) : null;
+            $nosuratkematian = !empty($validated['nosuratkematian']) ? trim($validated['nosuratkematian']) : null;
+
+            // Hapus field non-keluarga dan OLD_KDHUBKEL dari payload tabel keluarga
+            unset($validated['OLD_KDHUBKEL'], $validated['nosuratnikah'], $validated['noaktalahir'], $validated['nosuratkematian']);
 
             // Susun payload dengan aturan yang ditentukan pengguna
             $dataPayload = array_merge($validated, [
@@ -198,8 +244,46 @@ class KeluargaController extends Controller
                 $message = 'Data anggota keluarga (' . $validated['NMKEL'] . ') berhasil disimpan ke tabel keluarga!';
             }
 
+            // Simpan / Perbarui data ke tabel keluarga_keterangan (nosuratnikah, noaktalahir, nosuratkematian)
+            $existingKet = KeluargaKeterangan::where('nip', $nip)
+                ->where('kdhubkel', $targetQueryKd)
+                ->first();
+
+            if (!$existingKet && $oldKdhubkel) {
+                $existingKet = KeluargaKeterangan::where('nip', $nip)
+                    ->where('kdhubkel', $kdhubkel)
+                    ->first();
+                $targetKetKd = $kdhubkel;
+            } else {
+                $targetKetKd = $targetQueryKd;
+            }
+
+            $ketPayload = [
+                'nip' => $nip,
+                'kdhubkel' => $kdhubkel,
+                'kddati1' => !empty($validated['KDDATI1']) ? $validated['KDDATI1'] : '04',
+                'kddati2' => !empty($validated['KDDATI2']) ? $validated['KDDATI2'] : '11',
+                'nosuratnikah' => $nosuratnikah,
+                'noaktalahir' => $noaktalahir,
+                'nosuratkematian' => $nosuratkematian,
+                'updater' => 'aplikasi',
+                'updstamp' => now(),
+            ];
+
+            if ($existingKet) {
+                KeluargaKeterangan::where('nip', $nip)
+                    ->where('kdhubkel', $targetKetKd)
+                    ->update($ketPayload);
+            } else {
+                KeluargaKeterangan::create($ketPayload);
+            }
+
             // Sync ke tabel historis_jiwa dan mstpegawai
             $this->syncHistorisJiwaDanMstPegawai($nip, $dataPayload);
+
+            $dataPayload['nosuratnikah'] = $nosuratnikah;
+            $dataPayload['noaktalahir'] = $noaktalahir;
+            $dataPayload['nosuratkematian'] = $nosuratkematian;
 
             return response()->json([
                 'success' => true,
@@ -338,6 +422,11 @@ class KeluargaController extends Controller
                 ->delete();
 
             if ($deleted) {
+                // Hapus juga data keterangan terkait di tabel keluarga_keterangan
+                KeluargaKeterangan::where('nip', $cleanNip)
+                    ->where('kdhubkel', $cleanKd)
+                    ->delete();
+
                 // Sync ulang historis_jiwa dan mstpegawai setelah data keluarga dihapus
                 $this->syncHistorisJiwaDanMstPegawai($cleanNip, ['KDDATI1' => '04', 'KDDATI2' => '11', 'kdstawin' => 1]);
 
@@ -382,6 +471,8 @@ class KeluargaController extends Controller
                 $gelarB = $pasangan->GLRBELAKANG ? ', ' . trim($pasangan->GLRBELAKANG) : '';
                 $namaLengkap = $gelarD . $pasangan->NMKEL . $gelarB;
 
+                $ketPasangan = KeluargaKeterangan::where('nip', $cleanNip)->where('kdhubkel', $pasangan->KDHUBKEL)->first();
+
                 return response()->json([
                     'success' => true,
                     'source' => 'keluarga',
@@ -395,6 +486,7 @@ class KeluargaController extends Controller
                         'PEKERJAAN' => $pasangan->PEKERJAAN,
                         'TGLLHR' => $pasangan->TGLLHR,
                         'TGLNIKAH' => $pasangan->TGLNIKAH,
+                        'nosuratnikah' => $ketPasangan ? $ketPasangan->nosuratnikah : null,
                     ]
                 ]);
             }

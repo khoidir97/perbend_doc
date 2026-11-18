@@ -659,7 +659,8 @@
                                             </div>
                                         </div>
                                         <small class="text-danger mt-1 d-none" id="keteranganTunjangLocked">
-                                            <i class="icon-base bx bx-lock-alt me-1"></i>Status otomatis <strong>1 - TIDAK TERTUNJANG</strong> dan dikunci karena Tanggal Cerai / Wafat terisi.
+                                            <i class="icon-base bx bx-lock-alt me-1"></i>Status otomatis <strong>1 - TIDAK
+                                                TERTUNJANG</strong> dan dikunci karena Tanggal Cerai / Wafat terisi.
                                         </small>
                                     </div>
                                     <div class="col-md-5 text-md-end">
@@ -1284,13 +1285,13 @@
                 }
 
                 $tbody.html(`
-                                                            <tr>
-                                                                <td colspan="6" class="text-center py-4 text-muted">
-                                                                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
-                                                                    Memuat data susunan keluarga untuk NIP <strong>${nip}</strong> dari database kedua...
-                                                                </td>
-                                                            </tr>
-                                                        `);
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4 text-muted">
+                                                <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                                Memuat data susunan keluarga untuk NIP <strong>${nip}</strong> dari database kedua...
+                                            </td>
+                                        </tr>
+                                    `);
 
                 $.ajax({
                     url: `{{ url('keluarga/by-nip') }}/${encodeURIComponent(nip)}`,
@@ -1301,14 +1302,14 @@
 
                         if (currentKeluargaList.length === 0) {
                             $tbody.html(`
-                                                                        <tr>
-                                                                            <td colspan="6" class="text-center py-4 text-muted">
-                                                                                <i class="icon-base bx bx-folder-open fs-3 d-block mb-1 text-secondary"></i>
-                                                                                Belum ada data anggota keluarga di database kedua untuk NIP ini.<br>
-                                                                                <small class="text-muted">Gunakan form di atas untuk menambahkan data baru.</small>
-                                                                            </td>
-                                                                        </tr>
-                                                                    `);
+                                                <tr>
+                                                    <td colspan="6" class="text-center py-4 text-muted">
+                                                        <i class="icon-base bx bx-folder-open fs-3 d-block mb-1 text-secondary"></i>
+                                                        Belum ada data anggota keluarga di database kedua untuk NIP ini.<br>
+                                                        <small class="text-muted">Gunakan form di atas untuk menambahkan data baru.</small>
+                                                    </td>
+                                                </tr>
+                                            `);
                             return;
                         }
 
@@ -1339,27 +1340,27 @@
                             }
 
                             html += `
-                                                                        <tr class="table-row-keluarga" data-index="${i}" style="cursor: pointer;">
-                                                                            <td><span class="badge bg-label-dark">${item.KDHUBKEL}</span></td>
-                                                                            <td>
-                                                                                <span class="fw-bold text-dark d-block">${namaLengkap}</span>
-                                                                                ${item.NIPSUAMIISTRI ? `<small class="text-muted"><i class="icon-base bx bx-id-card me-1"></i>Pasangan ASN: ${item.NIPSUAMIISTRI}</small>` : ''}
-                                                                            </td>
-                                                                            <td>${tglLahirFmt}</td>
-                                                                            <td><span class="badge bg-label-primary">${nmHubkel}</span></td>
-                                                                            <td>${statusBadge}</td>
-                                                                            <td class="text-center">
-                                                                                <div class="d-inline-flex gap-1">
-                                                                                    <button type="button" class="btn btn-xs btn-icon btn-outline-primary btn-pilih-keluarga" title="Edit Baris Ini">
-                                                                                        <i class="icon-base bx bx-edit-alt"></i>
-                                                                                    </button>
-                                                                                    <button type="button" class="btn btn-xs btn-icon btn-outline-danger btn-hapus-row-keluarga" data-nip="${item.NIP}" data-kdhub="${item.KDHUBKEL}" data-nama="${item.NMKEL}" title="Hapus Data">
-                                                                                        <i class="icon-base bx bx-trash"></i>
-                                                                                    </button>
-                                                                                </div>
-                                                                            </td>
-                                                                        </tr>
-                                                                    `;
+                                                    <tr class="table-row-keluarga" data-index="${i}" style="cursor: pointer;">
+                                                        <td><span class="badge bg-label-dark">${item.KDHUBKEL}</span></td>
+                                                        <td>
+                                                            <span class="fw-bold text-dark d-block">${namaLengkap}</span>
+                                                            ${item.NIPSUAMIISTRI ? `<small class="text-muted"><i class="icon-base bx bx-id-card me-1"></i>Pasangan ASN: ${item.NIPSUAMIISTRI}</small>` : ''}
+                                                        </td>
+                                                        <td>${tglLahirFmt}</td>
+                                                        <td><span class="badge bg-label-primary">${nmHubkel}</span></td>
+                                                        <td>${statusBadge}</td>
+                                                        <td class="text-center">
+                                                            <div class="d-inline-flex gap-1">
+                                                                <button type="button" class="btn btn-xs btn-icon btn-outline-primary btn-pilih-keluarga" title="Edit Baris Ini">
+                                                                    <i class="icon-base bx bx-edit-alt"></i>
+                                                                </button>
+                                                                <button type="button" class="btn btn-xs btn-icon btn-outline-danger btn-hapus-row-keluarga" data-nip="${item.NIP}" data-kdhub="${item.KDHUBKEL}" data-nama="${item.NMKEL}" title="Hapus Data">
+                                                                    <i class="icon-base bx bx-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                `;
                         });
 
                         $tbody.html(html);
@@ -1367,14 +1368,14 @@
                     error: function (xhr) {
                         const errMsg = xhr.responseJSON?.message || 'Gagal memuat data keluarga dari database kedua.';
                         $tbody.html(`
-                                                                    <tr>
-                                                                        <td colspan="6" class="text-center py-4 text-danger">
-                                                                            <i class="icon-base bx bx-error-circle fs-3 d-block mb-1"></i>
-                                                                            <strong>Koneksi Database Kedua:</strong><br>
-                                                                            <small>${errMsg}</small>
-                                                                        </td>
-                                                                    </tr>
-                                                                `);
+                                                    <tr>
+                                                        <td colspan="6" class="text-center py-4 text-danger">
+                                                            <i class="icon-base bx bx-error-circle fs-3 d-block mb-1"></i>
+                                                            <strong>Koneksi Database Kedua:</strong><br>
+                                                            <small>${errMsg}</small>
+                                                        </td>
+                                                    </tr>
+                                                `);
                         $count.text('0 Anggota');
                     }
                 });
@@ -1463,6 +1464,12 @@
                 }
 
                 $('#badgeFormMode').text(`Mode: Edit Data (${item.NMKEL})`).removeClass('bg-label-primary').addClass('bg-label-warning');
+
+                // Auto scroll modal body ke atas menuju form input
+                const $modalBody = $('#modalDataKeluarga .modal-body');
+                $modalBody.animate({
+                    scrollTop: $('#formInputKeluarga').closest('.card').position().top + $modalBody.scrollTop() - 15
+                }, 350);
             });
 
             // Tombol "Baru" untuk Reset Form Input

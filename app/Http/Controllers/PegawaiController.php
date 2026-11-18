@@ -127,6 +127,16 @@ class PegawaiController extends Controller
           $satkerHtml = '<span class="text-muted small">-</span>';
         }
 
+        // Tampilkan badge Role
+        $roleVal = isset($pegawai->pgw_role) ? (int) $pegawai->pgw_role : 1;
+        if ($roleVal === 0) {
+          $roleHtml = '<span class="badge bg-label-danger"><i class="icon-base bx bx-shield me-1"></i>Admin</span>';
+        } elseif ($roleVal === 2) {
+          $roleHtml = '<span class="badge bg-label-info"><i class="icon-base bx bx-buildings me-1"></i>OPD</span>';
+        } else {
+          $roleHtml = '<span class="badge bg-label-success"><i class="icon-base bx bx-user me-1"></i>Pegawai</span>';
+        }
+
         $actionsHtml = '
           <div class="d-inline-flex gap-1">
             <button type="button" 
@@ -136,6 +146,7 @@ class PegawaiController extends Controller
               data-nama="' . e($pegawai->pgw_nama) . '"
               data-kd_skpd="' . e($pegawai->pgw_kd_skpd) . '"
               data-kd_satker="' . e($satkerKodeClean) . '"
+              data-role="' . $roleVal . '"
               title="Edit Pegawai">
               <i class="icon-base bx bx-edit-alt"></i>
             </button>
@@ -156,6 +167,7 @@ class PegawaiController extends Controller
           'pgw_nama' => $namaHtml,
           'skpd' => $skpdHtml,
           'satker' => $satkerHtml,
+          'role' => $roleHtml,
           'actions' => $actionsHtml,
         ];
       }
@@ -188,11 +200,13 @@ class PegawaiController extends Controller
       'pgw_kd_skpd' => ['nullable', 'string', 'max:10'],
       'pgw_kd_satker' => ['nullable', 'string', 'max:50'],
       'pgw_password' => ['nullable', 'string', 'min:6'],
+      'pgw_role' => ['required', 'in:0,1,2'],
     ], [
       'pgw_nip.required' => 'NIP Pegawai wajib diisi.',
       'pgw_nip.unique' => 'NIP sudah terdaftar, gunakan NIP lain.',
       'pgw_nama.required' => 'Nama Pegawai wajib diisi.',
       'pgw_password.min' => 'Password minimal 6 karakter.',
+      'pgw_role.required' => 'Silakan pilih Role / Hak Akses Pegawai.',
     ]);
 
     $pegawai = Pegawai::create([
@@ -201,6 +215,7 @@ class PegawaiController extends Controller
       'pgw_kd_skpd' => $validated['pgw_kd_skpd'] ?? null,
       'pgw_kd_satker' => $validated['pgw_kd_satker'] ?? null,
       'pgw_password' => !empty($validated['pgw_password']) ? Hash::make($validated['pgw_password']) : null,
+      'pgw_role' => isset($validated['pgw_role']) ? (int) $validated['pgw_role'] : 1,
       'pgw_created_at' => now(),
       'pgw_created_by' => Auth::id(),
     ]);
@@ -232,11 +247,13 @@ class PegawaiController extends Controller
       'pgw_kd_skpd' => ['nullable', 'string', 'max:10'],
       'pgw_kd_satker' => ['nullable', 'string', 'max:50'],
       'pgw_password' => ['nullable', 'string', 'min:6'],
+      'pgw_role' => ['required', 'in:0,1,2'],
     ], [
       'pgw_nip.required' => 'NIP Pegawai wajib diisi.',
       'pgw_nip.unique' => 'NIP sudah terdaftar pada pegawai lain.',
       'pgw_nama.required' => 'Nama Pegawai wajib diisi.',
       'pgw_password.min' => 'Password minimal 6 karakter.',
+      'pgw_role.required' => 'Silakan pilih Role / Hak Akses Pegawai.',
     ]);
 
     $updateData = [
@@ -244,6 +261,7 @@ class PegawaiController extends Controller
       'pgw_nama' => $validated['pgw_nama'],
       'pgw_kd_skpd' => $validated['pgw_kd_skpd'] ?? null,
       'pgw_kd_satker' => $validated['pgw_kd_satker'] ?? null,
+      'pgw_role' => isset($validated['pgw_role']) ? (int) $validated['pgw_role'] : 1,
       'pgw_updated_at' => now(),
       'pgw_updated_by' => Auth::id(),
     ];

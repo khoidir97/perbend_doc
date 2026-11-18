@@ -69,6 +69,7 @@
                 <th>Nama Pegawai</th>
                 <th>SKPD / OPD</th>
                 <th>Satuan Kerja (Satker)</th>
+                <th style="width: 110px;" class="text-center">Role</th>
                 <th style="width: 100px;" class="text-center">Aksi</th>
               </tr>
             </thead>
@@ -102,25 +103,22 @@
                 placeholder="Contoh: 198501012010011001" required>
             </div>
             <div class="mb-3">
-              <label for="create_pgw_nama" class="form-label">Nama Lengkap Pegawai <span class="text-danger">*</span></label>
+              <label for="create_pgw_nama" class="form-label">Nama Lengkap Pegawai <span
+                  class="text-danger">*</span></label>
               <input type="text" class="form-control" id="create_pgw_nama" name="pgw_nama"
                 placeholder="Contoh: AHMAD FAUZI, S.Kom" required>
             </div>
             <div class="mb-3">
               <label for="create_pgw_kd_skpd" class="form-label">SKPD / OPD</label>
-              <x-select2 id="create_pgw_kd_skpd" name="pgw_kd_skpd" :options="$skpdList"
-                value-field="opd_kode" label-field="opd_nama" code-field="opd_kode"
-                placeholder="-- Pilih SKPD / OPD --"
-                search-placeholder="Ketik kode / nama SKPD..."
-                no-results="SKPD tidak ditemukan" />
+              <x-select2 id="create_pgw_kd_skpd" name="pgw_kd_skpd" :options="$skpdList" value-field="opd_kode"
+                label-field="opd_nama" code-field="opd_kode" placeholder="-- Pilih SKPD / OPD --"
+                search-placeholder="Ketik kode / nama SKPD..." no-results="SKPD tidak ditemukan" />
             </div>
             <div class="mb-3">
               <label for="create_pgw_kd_satker" class="form-label">Satuan Kerja (Satker)</label>
-              <select class="form-select" id="create_pgw_kd_satker" name="pgw_kd_satker"
-                data-searchable-select
+              <select class="form-select" id="create_pgw_kd_satker" name="pgw_kd_satker" data-searchable-select
                 data-placeholder="-- Pilih SKPD terlebih dahulu --"
-                data-search-placeholder="Ketik nama atau kode satker..."
-                data-no-results="Satker tidak ditemukan">
+                data-search-placeholder="Ketik nama atau kode satker..." data-no-results="Satker tidak ditemukan">
                 <option value=""></option>
               </select>
               <small class="text-muted">Pilihan Satker disaring otomatis berdasarkan SKPD yang dipilih.</small>
@@ -133,7 +131,34 @@
                   aria-describedby="create_pgw_password">
                 <span class="input-group-text cursor-pointer"><i class="icon-base bx bx-hide"></i></span>
               </div>
-              <small class="text-muted">Password login aplikasi (minimal 6 karakter). Boleh dikosongkan jika belum ingin diset.</small>
+              <small class="text-muted">Password login aplikasi (minimal 6 karakter). Boleh dikosongkan jika belum ingin
+                diset.</small>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold text-dark d-block mb-2">
+                <i class="icon-base bx bx-user-pin me-1 text-primary"></i> Role / Hak Akses Pegawai <span class="text-danger">*</span>
+              </label>
+              <div class="d-flex flex-wrap gap-2">
+                <div class="form-check custom-option-basic">
+                  <input class="form-check-input" type="radio" name="pgw_role" id="create_role_admin" value="0" />
+                  <label class="form-check-label fw-semibold text-danger small cursor-pointer" for="create_role_admin">
+                    <span class="badge bg-label-danger me-1"><i class="icon-base bx bx-shield"></i></span> ADMIN
+                  </label>
+                </div>
+                <div class="form-check custom-option-basic">
+                  <input class="form-check-input" type="radio" name="pgw_role" id="create_role_pegawai" value="1" checked />
+                  <label class="form-check-label fw-semibold text-success small cursor-pointer" for="create_role_pegawai">
+                    <span class="badge bg-label-success me-1"><i class="icon-base bx bx-user"></i></span> PEGAWAI
+                  </label>
+                </div>
+                <div class="form-check custom-option-basic">
+                  <input class="form-check-input" type="radio" name="pgw_role" id="create_role_opd" value="2" />
+                  <label class="form-check-label fw-semibold text-info small cursor-pointer" for="create_role_opd">
+                    <span class="badge bg-label-info me-1"><i class="icon-base bx bx-buildings"></i></span> OPD
+                  </label>
+                </div>
+              </div>
+              <small class="text-muted">Pilih hak akses: <strong>Admin (0)</strong>, <strong>Pegawai (1)</strong>, atau <strong>OPD (2)</strong>.</small>
             </div>
           </div>
           <div class="modal-footer">
@@ -171,30 +196,28 @@
               <input type="text" class="form-control" id="edit_pgw_nip" name="pgw_nip" required>
             </div>
             <div class="mb-3">
-              <label for="edit_pgw_nama" class="form-label">Nama Lengkap Pegawai <span class="text-danger">*</span></label>
+              <label for="edit_pgw_nama" class="form-label">Nama Lengkap Pegawai <span
+                  class="text-danger">*</span></label>
               <input type="text" class="form-control" id="edit_pgw_nama" name="pgw_nama" required>
             </div>
             <div class="mb-3">
               <label for="edit_pgw_kd_skpd" class="form-label">SKPD / OPD</label>
-              <x-select2 id="edit_pgw_kd_skpd" name="pgw_kd_skpd" :options="$skpdList"
-                value-field="opd_kode" label-field="opd_nama" code-field="opd_kode"
-                placeholder="-- Pilih SKPD / OPD --"
-                search-placeholder="Ketik kode / nama SKPD..."
-                no-results="SKPD tidak ditemukan" />
+              <x-select2 id="edit_pgw_kd_skpd" name="pgw_kd_skpd" :options="$skpdList" value-field="opd_kode"
+                label-field="opd_nama" code-field="opd_kode" placeholder="-- Pilih SKPD / OPD --"
+                search-placeholder="Ketik kode / nama SKPD..." no-results="SKPD tidak ditemukan" />
             </div>
             <div class="mb-3">
               <label for="edit_pgw_kd_satker" class="form-label">Satuan Kerja (Satker)</label>
-              <select class="form-select" id="edit_pgw_kd_satker" name="pgw_kd_satker"
-                data-searchable-select
+              <select class="form-select" id="edit_pgw_kd_satker" name="pgw_kd_satker" data-searchable-select
                 data-placeholder="-- Pilih SKPD terlebih dahulu --"
-                data-search-placeholder="Ketik nama atau kode satker..."
-                data-no-results="Satker tidak ditemukan">
+                data-search-placeholder="Ketik nama atau kode satker..." data-no-results="Satker tidak ditemukan">
                 <option value=""></option>
               </select>
               <small class="text-muted">Pilihan Satker disaring otomatis berdasarkan SKPD yang dipilih.</small>
             </div>
             <div class="mb-3 form-password-toggle">
-              <label for="edit_pgw_password" class="form-label">Password Baru <small class="text-muted">(Kosongkan jika tidak ingin mengubah password)</small></label>
+              <label for="edit_pgw_password" class="form-label">Password Baru <small class="text-muted">(Kosongkan jika
+                  tidak ingin mengubah password)</small></label>
               <div class="input-group input-group-merge">
                 <input type="password" class="form-control" id="edit_pgw_password" name="pgw_password"
                   placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
@@ -202,6 +225,32 @@
                 <span class="input-group-text cursor-pointer"><i class="icon-base bx bx-hide"></i></span>
               </div>
               <small class="text-muted">Isi minimal 6 karakter hanya jika ingin mengganti password pegawai ini.</small>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold text-dark d-block mb-2">
+                <i class="icon-base bx bx-user-pin me-1 text-primary"></i> Role / Hak Akses Pegawai <span class="text-danger">*</span>
+              </label>
+              <div class="d-flex flex-wrap gap-2">
+                <div class="form-check custom-option-basic">
+                  <input class="form-check-input" type="radio" name="pgw_role" id="edit_role_admin" value="0" />
+                  <label class="form-check-label fw-semibold text-danger small cursor-pointer" for="edit_role_admin">
+                    <span class="badge bg-label-danger me-1"><i class="icon-base bx bx-shield"></i></span> ADMIN
+                  </label>
+                </div>
+                <div class="form-check custom-option-basic">
+                  <input class="form-check-input" type="radio" name="pgw_role" id="edit_role_pegawai" value="1" />
+                  <label class="form-check-label fw-semibold text-success small cursor-pointer" for="edit_role_pegawai">
+                    <span class="badge bg-label-success me-1"><i class="icon-base bx bx-user"></i></span> PEGAWAI
+                  </label>
+                </div>
+                <div class="form-check custom-option-basic">
+                  <input class="form-check-input" type="radio" name="pgw_role" id="edit_role_opd" value="2" />
+                  <label class="form-check-label fw-semibold text-info small cursor-pointer" for="edit_role_opd">
+                    <span class="badge bg-label-info me-1"><i class="icon-base bx bx-buildings"></i></span> OPD
+                  </label>
+                </div>
+              </div>
+              <small class="text-muted">Pilih hak akses: <strong>Admin (0)</strong>, <strong>Pegawai (1)</strong>, atau <strong>OPD (2)</strong>.</small>
             </div>
           </div>
           <div class="modal-footer">
@@ -230,7 +279,8 @@
           <input type="hidden" id="delete_pgw_id" name="id">
           <div class="modal-body text-center py-4">
             <i class="icon-base bx bx-error-circle text-danger fs-1 mb-2"></i>
-            <p class="mb-0">Apakah Anda yakin ingin menghapus data pegawai <strong id="delete_pgw_nama" class="text-dark"></strong>?</p>
+            <p class="mb-0">Apakah Anda yakin ingin menghapus data pegawai <strong id="delete_pgw_nama"
+                class="text-dark"></strong>?</p>
             <small class="text-muted">NIP: <span id="delete_pgw_nip" class="fw-semibold"></span></small>
           </div>
           <div class="modal-footer justify-content-center">
@@ -282,6 +332,7 @@
           { data: 'pgw_nama', name: 'pgw_nama' },
           { data: 'skpd', name: 'pgw_kd_skpd' },
           { data: 'satker', name: 'pgw_kd_satker' },
+          { data: 'role', name: 'pgw_role', className: 'text-center' },
           { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-center' }
         ],
         order: [[2, 'asc']],
@@ -308,11 +359,11 @@
       function showNotification(type, message) {
         const icon = type === 'success' ? 'bx-check-circle' : 'bx-error-circle';
         const alertHtml = `
-          <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-            <i class="icon-base bx ${icon} me-1"></i> ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-        `;
+                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                      <i class="icon-base bx ${icon} me-1"></i> ${message}
+                      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                  `;
         $('#ajaxAlertContainer').html(alertHtml);
         setTimeout(() => {
           $('#ajaxAlertContainer .alert').alert('close');
@@ -408,6 +459,7 @@
       // Reset create form saat modal dibuka
       $('#createPegawaiModal').on('show.bs.modal', function () {
         $('#createPegawaiForm')[0].reset();
+        $('#create_role_pegawai').prop('checked', true);
         SearchableSelect.reset('#create_pgw_kd_skpd');
         loadSatkerOptions($('#create_pgw_kd_satker'), null);
         clearFormErrors($('#createPegawaiForm'));
@@ -458,12 +510,14 @@
         const nama = $(this).data('nama');
         const kdSkpd = $(this).data('kd_skpd');
         const kdSatker = $(this).data('kd_satker');
+        const role = $(this).data('role') !== undefined ? String($(this).data('role')) : '1';
 
         clearFormErrors($('#editPegawaiForm'));
         $('#edit_pgw_id').val(id);
         $('#edit_pgw_nip').val(nip);
         $('#edit_pgw_nama').val(nama);
         $('#edit_pgw_password').val('');
+        $('#editPegawaiForm input[name="pgw_role"]').val([role]);
         SearchableSelect.setValue('#edit_pgw_kd_skpd', kdSkpd);
         loadSatkerOptions($('#edit_pgw_kd_satker'), kdSkpd, kdSatker);
         if (window.Helpers && window.Helpers.initPasswordToggle) {

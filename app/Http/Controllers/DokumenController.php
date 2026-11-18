@@ -19,10 +19,24 @@ class DokumenController extends Controller
   public function getPegawaiBySkpd(Request $request)
   {
     $currentUser = Auth::user();
-    $isAdmin = ($currentUser->role == 0);
+    $userRole = isset($currentUser->pgw_role) ? (int) $currentUser->pgw_role : 1;
+    $isAdmin = ($userRole === 0);
+    $isPegawai = ($userRole === 1);
+    $isOpd = ($userRole === 2);
+
+    // Pegawai hanya bisa memilih data dirinya sendiri
+    if ($isPegawai) {
+      return response()->json([
+        [
+          'pgw_id' => $currentUser->pgw_id,
+          'pgw_nip' => $currentUser->pgw_nip,
+          'pgw_nama' => $currentUser->pgw_nama,
+        ]
+      ]);
+    }
 
     // Tentukan SKPD
-    $kdSkpd = $isAdmin ? $request->input('kd_skpd') : ($currentUser->kd_skpd ?? null);
+    $kdSkpd = $isAdmin ? $request->input('kd_skpd') : ($currentUser->pgw_kd_skpd ?? $currentUser->kd_skpd ?? null);
 
     if (empty($kdSkpd)) {
       return response()->json([]);
@@ -31,14 +45,7 @@ class DokumenController extends Controller
     $query = Pegawai::where('pgw_kd_skpd', $kdSkpd)
       ->whereNull('pgw_deleted_at');
 
-    // Jika bukan admin dan user memiliki kd_satker, batasi ke satkernya
-    if (!$isAdmin && !empty($currentUser->kd_satker)) {
-      $cleanSatker = trim($currentUser->kd_satker);
-      $query->where(function ($q) use ($cleanSatker) {
-        $q->where('pgw_kd_satker', $cleanSatker)
-          ->orWhereRaw('TRIM(pgw_kd_satker) = ?', [$cleanSatker]);
-      });
-    } elseif ($request->filled('kd_satker')) {
+    if ($request->filled('kd_satker')) {
       $cleanSatker = trim($request->input('kd_satker'));
       $query->where(function ($q) use ($cleanSatker) {
         $q->where('pgw_kd_satker', $cleanSatker)
@@ -59,7 +66,10 @@ class DokumenController extends Controller
   public function index(Request $request)
   {
     $currentUser = Auth::user();
-    $isAdmin = ($currentUser->role == 0); // 0 = admin, 1 = opd
+    $userRole = isset($currentUser->pgw_role) ? (int) $currentUser->pgw_role : 1; // 0 = admin, 1 = pegawai, 2 = opd
+    $isAdmin = ($userRole === 0);
+    $isPegawai = ($userRole === 1);
+    $isOpd = ($userRole === 2);
 
     // Jika request AJAX dari DataTables (server-side pagination)
     if ($request->ajax()) {
@@ -70,12 +80,15 @@ class DokumenController extends Controller
 
       $baseQuery = Dokumen::whereNull('dok_deleted_at');
 
-      // Hak akses: jika bukan admin, batasi:
-      // 1. Jika ada kd_satker pada user -> filter berdasarkan dok_kd_satker
-      // 2. Jika tidak ada kd_satker -> filter berdasarkan dok_skpd
-      if (!$isAdmin) {
-        $userKdSatker = trim($currentUser->kd_satker ?? '');
-        $userKdSkpd = trim($currentUser->kd_skpd ?? '');
+      // Hak akses dokumen:
+      // 0 = Admin: Akses semua dokumen
+      // 1 = Pegawai: Hanya bisa melihat data dirinya sendiri (dok_pgw_id == pgw_id)
+      // 2 = OPD: Bisa melihat pegawai sesuai OPD-nya (dok_skpd == pgw_kd_skpd)
+      if ($isPegawai) {
+        $baseQuery->where('dok_pgw_id', $currentUser->pgw_id);
+      } elseif ($isOpd) {
+        $userKdSkpd = trim($currentUser->pgw_kd_skpd ?? $currentUser->kd_skpd ?? '');
+        $userKdSatker = trim($currentUser->pgw_kd_satker ?? $currentUser->kd_satker ?? '');
 
         if (!empty($userKdSatker)) {
           $baseQuery->where('dok_kd_satker', $userKdSatker);
@@ -332,7 +345,7 @@ class DokumenController extends Controller
       ]);
     }
 
-    return view('content.dokumen.index', compact('skpdList', 'isAdmin', 'currentUser', 'hubkelList'));
+    return view('content.dokumen.index', compact('skpdList', 'isAdmin', 'isPegawai', 'isOpd', 'userRole', 'currentUser', 'hubkelList'));
   }
 
   /**
@@ -341,7 +354,10 @@ class DokumenController extends Controller
   public function store(Request $request)
   {
     $currentUser = Auth::user();
-    $isAdmin = ($currentUser->role == 0);
+    $userRole = isset($currentUser->pgw_role) ? (int) $currentUser->pgw_role : 1;
+    $isAdmin = ($userRole === 0);
+    $isPegawai = ($userRole === 1);
+    $isOpd = ($userRole === 2);
 
     // Validasi input
     $rules = [
@@ -382,6 +398,8 @@ class DokumenController extends Controller
 
     if ($isAdmin) {
       $rules['dok_skpd'] = ['required', 'string', 'max:100'];
+    } elseif ($isOpd) {
+      $rules['dok_pgw_id'] = ['required', 'integer'];
     }
 
     $messages = [
@@ -391,14 +409,37 @@ class DokumenController extends Controller
       'dok_file.mimetypes' => 'Tipe konten berkas harus berupa application/pdf.',
       'dok_file.max' => 'Ukuran file PDF maksimal 2 MB.',
       'dok_skpd.required' => 'Silakan pilih SKPD pengunggah dokumen.',
+      'dok_pgw_id.required' => 'Silakan pilih pegawai yang bersangkutan.',
     ];
 
     $validated = $request->validate($rules, $messages);
 
     // Tentukan SKPD, Satker & Pegawai
-    $kdSkpd = $isAdmin ? $validated['dok_skpd'] : ($currentUser->kd_skpd ?? null);
-    $kdSatker = $isAdmin ? ($validated['dok_kd_satker'] ?? null) : ($currentUser->kd_satker ?? ($validated['dok_kd_satker'] ?? null));
-    $dokPgwId = $isAdmin ? ($validated['dok_pgw_id'] ?? null) : ($currentUser->pgw_id ?? $currentUser->id);
+    if ($isAdmin) {
+      $kdSkpd = $validated['dok_skpd'];
+      $kdSatker = $validated['dok_kd_satker'] ?? null;
+      $dokPgwId = $validated['dok_pgw_id'] ?? null;
+    } elseif ($isOpd) {
+      $kdSkpd = trim($currentUser->pgw_kd_skpd ?? $currentUser->kd_skpd ?? '');
+      $kdSatker = !empty($validated['dok_kd_satker']) ? trim($validated['dok_kd_satker']) : null;
+      $dokPgwId = (int) $validated['dok_pgw_id'];
+
+      // Validasi pastikan pegawai yang dipilih terdaftar di SKPD OPD ini
+      $pegawai = Pegawai::where('pgw_id', $dokPgwId)->where('pgw_kd_skpd', $kdSkpd)->first();
+      if (!$pegawai) {
+        return response()->json([
+          'success' => false,
+          'message' => 'Pegawai yang dipilih tidak terdaftar pada SKPD Anda.',
+        ], 422);
+      }
+      if (empty($kdSatker) && !empty($pegawai->pgw_kd_satker)) {
+        $kdSatker = trim($pegawai->pgw_kd_satker);
+      }
+    } else { // isPegawai
+      $kdSkpd = trim($currentUser->pgw_kd_skpd ?? $currentUser->kd_skpd ?? '');
+      $kdSatker = trim($currentUser->pgw_kd_satker ?? $currentUser->kd_satker ?? '') ?: null;
+      $dokPgwId = $currentUser->pgw_id;
+    }
 
     if (empty($kdSkpd)) {
       if ($request->ajax()) {
@@ -441,18 +482,26 @@ class DokumenController extends Controller
   public function update(Request $request, $id)
   {
     $currentUser = Auth::user();
-    $isAdmin = ($currentUser->role == 0);
+    $userRole = isset($currentUser->pgw_role) ? (int) $currentUser->pgw_role : 1;
+    $isAdmin = ($userRole === 0);
+    $isPegawai = ($userRole === 1);
+    $isOpd = ($userRole === 2);
 
     $dokumen = Dokumen::whereNull('dok_deleted_at')->findOrFail($id);
 
-    // Jika bukan admin, pastikan dokumen miliknya dan belum diverifikasi
-    if (!$isAdmin) {
-      if (!empty($currentUser->kd_satker) && $dokumen->dok_kd_satker !== $currentUser->kd_satker) {
-        return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
-      } elseif ($dokumen->dok_skpd !== $currentUser->kd_skpd) {
-        return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+    // Otorisasi hak akses update
+    if ($isPegawai) {
+      if ($dokumen->dok_pgw_id !== $currentUser->pgw_id) {
+        return response()->json(['success' => false, 'message' => 'Akses ditolak. Anda hanya dapat mengubah dokumen milik Anda sendiri.'], 403);
       }
-
+      if ($dokumen->dok_status == 1) {
+        return response()->json(['success' => false, 'message' => 'Dokumen sudah diverifikasi dan tidak dapat diubah lagi.'], 422);
+      }
+    } elseif ($isOpd) {
+      $userKdSkpd = trim($currentUser->pgw_kd_skpd ?? $currentUser->kd_skpd ?? '');
+      if ($dokumen->dok_skpd !== $userKdSkpd) {
+        return response()->json(['success' => false, 'message' => 'Akses ditolak. Anda hanya dapat mengubah dokumen di lingkungan OPD Anda.'], 403);
+      }
       if ($dokumen->dok_status == 1) {
         return response()->json(['success' => false, 'message' => 'Dokumen sudah diverifikasi dan tidak dapat diubah lagi.'], 422);
       }
@@ -496,6 +545,8 @@ class DokumenController extends Controller
 
     if ($isAdmin) {
       $rules['dok_skpd'] = ['required', 'string', 'max:100'];
+    } elseif ($isOpd) {
+      $rules['dok_pgw_id'] = ['required', 'integer'];
     }
 
     $messages = [
@@ -504,14 +555,36 @@ class DokumenController extends Controller
       'dok_file.mimetypes' => 'Tipe konten berkas harus berupa application/pdf.',
       'dok_file.max' => 'Ukuran file PDF maksimal 2 MB.',
       'dok_skpd.required' => 'SKPD wajib dipilih.',
+      'dok_pgw_id.required' => 'Pegawai wajib dipilih.',
     ];
 
     $validated = $request->validate($rules, $messages);
 
-    $dokPgwId = $isAdmin ? ($validated['dok_pgw_id'] ?? null) : ($currentUser->pgw_id ?? $currentUser->id);
+    if ($isAdmin) {
+      $kdSatker = $validated['dok_kd_satker'] ?? null;
+      $dokPgwId = $validated['dok_pgw_id'] ?? null;
+    } elseif ($isOpd) {
+      $kdSatker = !empty($validated['dok_kd_satker']) ? trim($validated['dok_kd_satker']) : null;
+      $dokPgwId = (int) $validated['dok_pgw_id'];
+      $userKdSkpd = trim($currentUser->pgw_kd_skpd ?? $currentUser->kd_skpd ?? '');
+
+      $pegawai = Pegawai::where('pgw_id', $dokPgwId)->where('pgw_kd_skpd', $userKdSkpd)->first();
+      if (!$pegawai) {
+        return response()->json([
+          'success' => false,
+          'message' => 'Pegawai yang dipilih tidak terdaftar pada SKPD Anda.',
+        ], 422);
+      }
+      if (empty($kdSatker) && !empty($pegawai->pgw_kd_satker)) {
+        $kdSatker = trim($pegawai->pgw_kd_satker);
+      }
+    } else { // isPegawai
+      $kdSatker = trim($currentUser->pgw_kd_satker ?? $currentUser->kd_satker ?? '') ?: null;
+      $dokPgwId = $currentUser->pgw_id;
+    }
 
     $updateData = [
-      'dok_kd_satker' => $isAdmin ? ($validated['dok_kd_satker'] ?? null) : ($currentUser->kd_satker ?? ($validated['dok_kd_satker'] ?? null)),
+      'dok_kd_satker' => $kdSatker ?: null,
       'dok_pgw_id' => $dokPgwId ?: null,
       'dok_updated_at' => now(),
       'dok_updated_by' => $currentUser->id,
@@ -552,7 +625,8 @@ class DokumenController extends Controller
   public function verifikasi(Request $request, $id)
   {
     $currentUser = Auth::user();
-    if ($currentUser->role != 0) {
+    $userRole = isset($currentUser->pgw_role) ? (int) $currentUser->pgw_role : 1;
+    if ($userRole !== 0) {
       return response()->json([
         'success' => false,
         'message' => 'Hanya Admin yang berhak memverifikasi dokumen.',
@@ -587,18 +661,26 @@ class DokumenController extends Controller
   public function destroy(Request $request, $id)
   {
     $currentUser = Auth::user();
-    $isAdmin = ($currentUser->role == 0);
+    $userRole = isset($currentUser->pgw_role) ? (int) $currentUser->pgw_role : 1;
+    $isAdmin = ($userRole === 0);
+    $isPegawai = ($userRole === 1);
+    $isOpd = ($userRole === 2);
 
     $dokumen = Dokumen::whereNull('dok_deleted_at')->findOrFail($id);
 
-    // Jika bukan admin, pastikan dokumen miliknya dan belum diverifikasi
-    if (!$isAdmin) {
-      if (!empty($currentUser->kd_satker) && $dokumen->dok_kd_satker !== $currentUser->kd_satker) {
-        return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
-      } elseif ($dokumen->dok_skpd !== $currentUser->kd_skpd) {
-        return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+    // Otorisasi hak akses hapus
+    if ($isPegawai) {
+      if ($dokumen->dok_pgw_id !== $currentUser->pgw_id) {
+        return response()->json(['success' => false, 'message' => 'Akses ditolak. Anda hanya dapat menghapus dokumen milik Anda sendiri.'], 403);
       }
-
+      if ($dokumen->dok_status == 1) {
+        return response()->json(['success' => false, 'message' => 'Dokumen sudah diverifikasi dan tidak dapat dihapus.'], 422);
+      }
+    } elseif ($isOpd) {
+      $userKdSkpd = trim($currentUser->pgw_kd_skpd ?? $currentUser->kd_skpd ?? '');
+      if ($dokumen->dok_skpd !== $userKdSkpd) {
+        return response()->json(['success' => false, 'message' => 'Akses ditolak. Anda hanya dapat menghapus dokumen di lingkungan OPD Anda.'], 403);
+      }
       if ($dokumen->dok_status == 1) {
         return response()->json(['success' => false, 'message' => 'Dokumen sudah diverifikasi dan tidak dapat dihapus.'], 422);
       }

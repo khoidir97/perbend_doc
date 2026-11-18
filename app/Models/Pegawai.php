@@ -22,6 +22,7 @@ class Pegawai extends Authenticatable
         'pgw_kd_skpd',
         'pgw_kd_satker',
         'pgw_password',
+        'pgw_role',
         'pgw_created_at',
         'pgw_created_by',
         'pgw_updated_at',
@@ -88,11 +89,11 @@ class Pegawai extends Authenticatable
 
     public function getRoleAttribute()
     {
-        if (isset($this->attributes['role'])) {
-            return (int) $this->attributes['role'];
-        }
-        if (isset($this->attributes['pgw_role'])) {
+        if (isset($this->attributes['pgw_role']) && $this->attributes['pgw_role'] !== null) {
             return (int) $this->attributes['pgw_role'];
+        }
+        if (isset($this->attributes['role']) && $this->attributes['role'] !== null) {
+            return (int) $this->attributes['role'];
         }
 
         // BPKAD (036) sebagai administrator sistem (role 0)
@@ -100,6 +101,20 @@ class Pegawai extends Authenticatable
             return 0;
         }
 
+        return 1;
+    }
+
+    public function getPgwRoleAttribute($value)
+    {
+        if ($value !== null) {
+            return (int) $value;
+        }
+        if (isset($this->attributes['role']) && $this->attributes['role'] !== null) {
+            return (int) $this->attributes['role'];
+        }
+        if (!empty($this->pgw_kd_skpd) && trim($this->pgw_kd_skpd) === '036') {
+            return 0;
+        }
         return 1;
     }
 

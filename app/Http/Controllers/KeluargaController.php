@@ -10,6 +10,7 @@ use App\Models\Hubkel;
 use App\Models\HistorisJiwa;
 use App\Models\PegawaiDB2;
 use App\Models\KeluargaKeterangan;
+use App\Models\Wafat;
 use Carbon\Carbon;
 
 class KeluargaController extends Controller
@@ -66,13 +67,17 @@ class KeluargaController extends Controller
                 return trim($k->kdhubkel);
             });
 
+            // Ambil data twafat khusus pegawai (KDHUBKEL = '00')
+            $wafatPegawai = Wafat::where('NIP', $cleanNip)->where('KDHUBKEL', '00')->first();
+
             // Format keterangan hubungan keluarga dan sertakan nomor dokumen pendukung
-            $keluarga->transform(function ($item) use ($keteranganList) {
+            $keluarga->transform(function ($item) use ($keteranganList, $wafatPegawai) {
                 $kd = trim($item->KDHUBKEL);
                 $ket = $keteranganList->get($kd);
                 $item->nosuratnikah = $ket ? $ket->nosuratnikah : null;
                 $item->noaktalahir = $ket ? $ket->noaktalahir : null;
                 $item->nosuratkematian = $ket ? $ket->nosuratkematian : null;
+                $item->twafat = ($kd === '00') ? $wafatPegawai : null;
 
                 if (is_numeric($kd) && (int)$kd >= 11 && (int)$kd <= 19) {
                     $anakKe = (int) substr($kd, 1);
@@ -131,6 +136,11 @@ class KeluargaController extends Controller
             'nosuratnikah' => ['nullable', 'string', 'max:100'],
             'noaktalahir' => ['nullable', 'string', 'max:100'],
             'nosuratkematian' => ['nullable', 'string', 'max:100'],
+            'twafat_tglsurat' => ['nullable', 'date'],
+            'twafat_penerbit' => ['nullable', 'string', 'max:40'],
+            'twafat_jmlterusan' => ['nullable', 'integer'],
+            'twafat_tglstop' => ['nullable', 'date'],
+            'twafat_kdhubkelpenerima' => ['nullable', 'string', 'max:2'],
             'KDTUNJANG' => ['nullable', 'integer'],
             'NIPSUAMIISTRI' => ['nullable', 'string', 'max:18'],
             'PEKERJAAN' => ['nullable', 'string', 'max:40'],
@@ -230,13 +240,29 @@ class KeluargaController extends Controller
                 }
             }
 
-            // Ambil data untuk tabel keluarga_keterangan
+            // Ambil data untuk tabel keluarga_keterangan & twafat
             $nosuratnikah = !empty($validated['nosuratnikah']) ? trim($validated['nosuratnikah']) : null;
             $noaktalahir = !empty($validated['noaktalahir']) ? trim($validated['noaktalahir']) : null;
             $nosuratkematian = !empty($validated['nosuratkematian']) ? trim($validated['nosuratkematian']) : null;
 
+            $twafatTglSurat = !empty($validated['twafat_tglsurat']) ? $validated['twafat_tglsurat'] : null;
+            $twafatPenerbit = !empty($validated['twafat_penerbit']) ? substr(trim($validated['twafat_penerbit']), 0, 40) : null;
+            $twafatJmlTerusan = isset($validated['twafat_jmlterusan']) && $validated['twafat_jmlterusan'] !== '' ? (int) $validated['twafat_jmlterusan'] : 4;
+            $twafatTglStop = !empty($validated['twafat_tglstop']) ? $validated['twafat_tglstop'] : null;
+            $twafatPenerima = !empty($validated['twafat_kdhubkelpenerima']) ? trim($validated['twafat_kdhubkelpenerima']) : null;
+
             // Hapus field non-keluarga dan OLD_KDHUBKEL dari payload tabel keluarga
-            unset($validated['OLD_KDHUBKEL'], $validated['nosuratnikah'], $validated['noaktalahir'], $validated['nosuratkematian']);
+            unset(
+                $validated['OLD_KDHUBKEL'],
+                $validated['nosuratnikah'],
+                $validated['noaktalahir'],
+                $validated['nosuratkematian'],
+                $validated['twafat_tglsurat'],
+                $validated['twafat_penerbit'],
+                $validated['twafat_jmlterusan'],
+                $validated['twafat_tglstop'],
+                $validated['twafat_kdhubkelpenerima']
+            );
 
             // Susun payload dengan aturan yang ditentukan pengguna
             $dataPayload = array_merge($validated, [
@@ -294,6 +320,53 @@ class KeluargaController extends Controller
                     ->update($ketPayload);
             } else {
                 KeluargaKeterangan::create($ketPayload);
+            }
+
+            // Simpan / Perbarui data ke tabel twafat khusus pegawai yang wafat (KDHUBKEL = '00')
+            if ($kdhubkel === '00') {
+                if (!empty($validated['TGLWAFAT'])) {
+                    $tglWafat = $validated['TGLWAFAT'];
+                    $nosuratWafat = !empty($nosuratkematian) ? substr($nosuratkematian, 0, 40) : null;
+                    $tglSurat = $twafatTglSurat ?: $tglWafat;
+
+                    if (empty($twafatTglStop)) {
+                        $twafatTglStop = Carbon::parse($tglWafat)->addMonthNoOverflow()->startOfMonth()->addMonthsNoOverflow($twafatJmlTerusan)->toDateString();
+                    }
+
+                    $existingWafat = Wafat::where('NIP', $nip)
+                        ->where('KDHUBKEL', '00')
+                        ->first();
+
+                    $twafatPayload = [
+                        'NIP' => $nip,
+                        'KDHUBKEL' => '00',
+                        'TGLWAFAT' => $tglWafat,
+                        'NOSURAT' => $nosuratWafat,
+                        'TGLSURAT' => $tglSurat,
+                        'PENERBIT' => $twafatPenerbit,
+                        'JMLTERUSAN' => $twafatJmlTerusan,
+                        'TGLSTOP' => $twafatTglStop,
+                        'KDHUBKELPENERIMA' => $twafatPenerima,
+                        'COVID' => 1,
+                        'KDDATI1' => !empty($validated['KDDATI1']) ? $validated['KDDATI1'] : '04',
+                        'KDDATI2' => !empty($validated['KDDATI2']) ? $validated['KDDATI2'] : '11',
+                    ];
+
+                    if ($existingWafat) {
+                        Wafat::where('NIP', $nip)
+                            ->where('KDHUBKEL', '00')
+                            ->update($twafatPayload);
+                    } else {
+                        Wafat::create($twafatPayload);
+                    }
+
+                    $dataPayload['TGLSTOP'] = $twafatTglStop;
+                } else {
+                    // Jika tanggal wafat dihapus / dikosongkan pada pegawai, hapus record di twafat
+                    Wafat::where('NIP', $nip)
+                        ->where('KDHUBKEL', '00')
+                        ->delete();
+                }
             }
 
             // Sync ke tabel historis_jiwa dan mstpegawai
@@ -444,6 +517,13 @@ class KeluargaController extends Controller
                 KeluargaKeterangan::where('nip', $cleanNip)
                     ->where('kdhubkel', $cleanKd)
                     ->delete();
+
+                // Jika pegawai yang dihapus (KDHUBKEL = '00'), hapus juga dari tabel twafat
+                if ($cleanKd === '00') {
+                    Wafat::where('NIP', $cleanNip)
+                        ->where('KDHUBKEL', '00')
+                        ->delete();
+                }
 
                 // Sync ulang historis_jiwa dan mstpegawai setelah data keluarga dihapus
                 $this->syncHistorisJiwaDanMstPegawai($cleanNip, ['KDDATI1' => '04', 'KDDATI2' => '11', 'kdstawin' => 1]);

@@ -177,6 +177,39 @@
                                 </select>
                                 <small class="text-muted">Pilih pegawai bersangkutan berdasarkan SKPD.</small>
                             </div>
+                        @elseif ($isOpd)
+                            {{-- Form Khusus OPD: SKPD otomatis OPD user, dapat memilih Satker & Pegawai di OPD-nya --}}
+                            <div class="mb-3">
+                                <label class="form-label">SKPD / OPD Pengunggah</label>
+                                <input type="text" class="form-control bg-light"
+                                    value="[{{ $currentUser->kd_skpd }}] {{ $currentUser->skpd->opd_nama ?? 'SKPD Anda' }}"
+                                    readonly>
+                                <input type="hidden" id="create_dok_skpd" name="dok_skpd" value="{{ $currentUser->kd_skpd }}">
+                                <small class="text-muted">Dokumen diasosiasikan ke instansi OPD Anda.</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="create_dok_kd_satker" class="form-label">Satuan Kerja (Satker)</label>
+                                <select class="form-select" id="create_dok_kd_satker" name="dok_kd_satker"
+                                    data-searchable-select data-placeholder="-- Pilih Satker (Opsional) --"
+                                    data-search-placeholder="Ketik nama atau kode satker..."
+                                    data-no-results="Satker tidak ditemukan">
+                                    <option value=""></option>
+                                </select>
+                                <small class="text-muted">Pilihan Satker di lingkungan OPD Anda.</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="create_dok_pgw_id" class="form-label">Pegawai / ASN <span
+                                        class="text-danger">*</span></label>
+                                <select class="form-select" id="create_dok_pgw_id" name="dok_pgw_id" data-searchable-select
+                                    data-placeholder="-- Cari / Pilih Pegawai --"
+                                    data-search-placeholder="Ketik NIP atau nama pegawai..."
+                                    data-no-results="Pegawai tidak ditemukan" required>
+                                    <option value=""></option>
+                                </select>
+                                <small class="text-muted">Pilih pegawai yang bersangkutan di lingkungan OPD Anda.</small>
+                            </div>
                         @else
                             {{-- Form Otomatis untuk Pegawai yang Login --}}
                             <div class="mb-3">
@@ -289,6 +322,39 @@
                                     <option value=""></option>
                                 </select>
                                 <small class="text-muted">Pilih pegawai bersangkutan berdasarkan SKPD.</small>
+                            </div>
+                        @elseif ($isOpd)
+                            {{-- Form Edit Khusus OPD: SKPD terkunci ke OPD user, dapat mengubah Satker & Pegawai di OPD-nya --}}
+                            <div class="mb-3">
+                                <label class="form-label">SKPD / OPD</label>
+                                <input type="text" class="form-control bg-light"
+                                    value="[{{ $currentUser->kd_skpd }}] {{ $currentUser->skpd->opd_nama ?? 'SKPD Anda' }}"
+                                    readonly>
+                                <input type="hidden" id="edit_dok_skpd" name="dok_skpd" value="{{ $currentUser->kd_skpd }}">
+                                <small class="text-muted">Instansi OPD pemilik dokumen.</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="edit_dok_kd_satker" class="form-label">Satuan Kerja (Satker)</label>
+                                <select class="form-select" id="edit_dok_kd_satker" name="dok_kd_satker" data-searchable-select
+                                    data-placeholder="-- Pilih Satker (Opsional) --"
+                                    data-search-placeholder="Ketik nama atau kode satker..."
+                                    data-no-results="Satker tidak ditemukan">
+                                    <option value=""></option>
+                                </select>
+                                <small class="text-muted">Pilihan Satker di lingkungan OPD Anda.</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="edit_dok_pgw_id" class="form-label">Pegawai / ASN <span
+                                        class="text-danger">*</span></label>
+                                <select class="form-select" id="edit_dok_pgw_id" name="dok_pgw_id" data-searchable-select
+                                    data-placeholder="-- Cari / Pilih Pegawai --"
+                                    data-search-placeholder="Ketik NIP atau nama pegawai..."
+                                    data-no-results="Pegawai tidak ditemukan" required>
+                                    <option value=""></option>
+                                </select>
+                                <small class="text-muted">Pilih pegawai yang bersangkutan di lingkungan OPD Anda.</small>
                             </div>
                         @else
                             <input type="hidden" name="dok_skpd" value="{{ $currentUser->kd_skpd }}">
@@ -551,37 +617,98 @@
                                             </div>
                                         </div>
                                         <div class="col-md-6">
-                                            <label for="kel_tgl_cerai" class="form-label small fw-semibold">Tanggal Cerai</label>
+                                            <label for="kel_tgl_cerai" class="form-label small fw-semibold">Tanggal
+                                                Cerai</label>
                                             <input type="date" class="form-control form-control-sm" id="kel_tgl_cerai"
                                                 name="TGLCERAI" />
                                         </div>
                                     </div>
                                     <div class="row g-2 mb-2">
                                         <div class="col-md-6">
-                                            <label for="kel_tgl_nikah" class="form-label small fw-semibold">Tanggal Nikah</label>
+                                            <label for="kel_tgl_nikah" class="form-label small fw-semibold">Tanggal
+                                                Nikah</label>
                                             <input type="date" class="form-control form-control-sm" id="kel_tgl_nikah"
                                                 name="TGLNIKAH" />
                                         </div>
                                         <div class="col-md-6">
                                             <label for="kel_no_surat_nikah" class="form-label small fw-semibold">
-                                                <i class="icon-base bx bx-file me-1 text-primary"></i>Nomor Surat / Buku Nikah
+                                                <i class="icon-base bx bx-file me-1 text-primary"></i>Nomor Surat / Buku
+                                                Nikah
                                             </label>
                                             <input type="text" class="form-control form-control-sm" id="kel_no_surat_nikah"
-                                                name="nosuratnikah" placeholder="Contoh: No. Buku Nikah / Akta Nikah" maxlength="100" />
+                                                name="nosuratnikah" placeholder="Contoh: No. Buku Nikah / Akta Nikah"
+                                                maxlength="100" />
                                         </div>
                                     </div>
                                     <div class="row g-2">
                                         <div class="col-md-6">
-                                            <label for="kel_tgl_wafat" class="form-label small fw-semibold">Tanggal Wafat</label>
+                                            <label for="kel_tgl_wafat" class="form-label small fw-semibold">Tanggal
+                                                Wafat</label>
                                             <input type="date" class="form-control form-control-sm" id="kel_tgl_wafat"
                                                 name="TGLWAFAT" />
                                         </div>
                                         <div class="col-md-6">
                                             <label for="kel_no_surat_kematian" class="form-label small fw-semibold">
-                                                <i class="icon-base bx bx-file-blank me-1 text-danger"></i>Nomor Surat / Akta Kematian
+                                                <i class="icon-base bx bx-file-blank me-1 text-danger"></i>Nomor Surat /
+                                                Akta Kematian (NOSURAT)
                                             </label>
-                                            <input type="text" class="form-control form-control-sm" id="kel_no_surat_kematian"
-                                                name="nosuratkematian" placeholder="Contoh: No. Akta Kematian / Keterangan Wafat" maxlength="100" />
+                                            <input type="text" class="form-control form-control-sm"
+                                                id="kel_no_surat_kematian" name="nosuratkematian"
+                                                placeholder="Contoh: No. Akta Kematian / Keterangan Wafat"
+                                                maxlength="100" />
+                                        </div>
+                                    </div>
+
+                                    <!-- Keterangan Khusus Pegawai Wafat (Tabel TWafat) -->
+                                    <div id="section_twafat_pegawai" class="d-none mt-2 pt-2 border-top">
+                                        <div class="d-flex align-items-center justify-content-between mb-2 p-2 rounded bg-label-danger">
+                                            <span class="small fw-bold text-danger">
+                                                <i class="icon-base bx bx-user-x me-1"></i> Rincian Kematian Pegawai (Tabel TWafat)
+                                            </span>
+                                            <span class="badge bg-danger">Khusus Pegawai (00)</span>
+                                        </div>
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-md-6">
+                                                <label for="twafat_tglsurat" class="form-label small fw-semibold">Tanggal Surat Kematian (TGLSURAT)</label>
+                                                <input type="date" class="form-control form-control-sm" id="twafat_tglsurat" name="twafat_tglsurat" />
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="twafat_penerbit" class="form-label small fw-semibold">Instansi / RS Penerbit Surat (PENERBIT)</label>
+                                                <input type="text" class="form-control form-control-sm" id="twafat_penerbit" name="twafat_penerbit"
+                                                    placeholder="Contoh: RS SYAFIRA / DISDUKCAPIL" maxlength="40" />
+                                            </div>
+                                        </div>
+                                        <div class="row g-2">
+                                            <div class="col-md-4">
+                                                <label for="twafat_jmlterusan" class="form-label small fw-semibold">Gaji Terusan (JMLTERUSAN)</label>
+                                                <select class="form-select form-select-sm" id="twafat_jmlterusan" name="twafat_jmlterusan">
+                                                    <option value="4" selected>4 Bulan (Standar)</option>
+                                                    <option value="0">0 Bulan (Tanpa Terusan)</option>
+                                                    <option value="1">1 Bulan</option>
+                                                    <option value="2">2 Bulan</option>
+                                                    <option value="3">3 Bulan</option>
+                                                    <option value="5">5 Bulan</option>
+                                                    <option value="6">6 Bulan</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="twafat_tglstop" class="form-label small fw-semibold">Tanggal Stop Gaji (TGLSTOP)</label>
+                                                <input type="date" class="form-control form-control-sm" id="twafat_tglstop" name="twafat_tglstop" />
+                                                <small class="text-muted d-block" style="font-size: 0.7rem;">Otomatis tgl 1 setelah masa terusan.</small>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="twafat_kdhubkelpenerima" class="form-label small fw-semibold">Hubkel Penerima (KDHUBKELPENERIMA)</label>
+                                                <select class="form-select form-select-sm" id="twafat_kdhubkelpenerima" name="twafat_kdhubkelpenerima">
+                                                    <option value="">-- Pilih Hubkel --</option>
+                                                    <option value="10">10 - ISTERI</option>
+                                                    <option value="20">20 - SUAMI</option>
+                                                    <option value="11">11 - ANAK KE-1</option>
+                                                    <option value="12">12 - ANAK KE-2</option>
+                                                    <option value="13">13 - ANAK KE-3</option>
+                                                    <option value="14">14 - ANAK KE-4</option>
+                                                    <option value="15">15 - ANAK KE-5</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -591,20 +718,21 @@
                                     style="border-left: 4px solid #03c3ec !important;">
                                     <div class="d-flex align-items-center justify-content-between mb-2">
                                         <span class="small fw-bold text-info">
-                                            <i class="icon-base bx bx-book-reader me-1"></i> Surat Keterangan Aktif Kuliah (SKS) Anak
+                                            <i class="icon-base bx bx-book-reader me-1"></i> Surat Keterangan Aktif Kuliah
+                                            (SKS) Anak
                                         </span>
-                                        <span class="badge bg-label-info">SKS Kuliah / Sekolah</span>
+                                        <span class="badge bg-label-info">SKS Kuliah</span>
                                     </div>
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-md-6">
+                                    <div class="row g-3 mb-2">
+                                        <div class="col-md-4">
                                             <label for="kel_tgl_awal_sks" class="form-label small fw-semibold">Tanggal Awal
                                                 Surat Aktif Kuliah (SKS)</label>
                                             <input type="date" class="form-control form-control-sm" id="kel_tgl_awal_sks"
                                                 name="TGLSKS" />
                                             <small class="text-muted d-block" style="font-size: 0.75rem;">Wajib bagi anak
-                                                usia 21–25 th yang masih kuliah/sekolah.</small>
+                                                usia 21–25 th yang masih kuliah.</small>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-4">
                                             <label for="kel_tgl_akhir_sks" class="form-label small fw-semibold">Tanggal
                                                 Akhir Surat Aktif Kuliah (SKS)</label>
                                             <input type="date" class="form-control form-control-sm bg-light"
@@ -612,29 +740,30 @@
                                             <small class="text-muted d-block" style="font-size: 0.75rem;">Otomatis 1 tahun
                                                 sejak tanggal awal.</small>
                                         </div>
-                                    </div>
-                                    <div class="row g-2">
-                                        <div class="col-12">
+                                        <div class="col-md-4">
                                             <label for="kel_no_surat_sks"
                                                 class="form-label small fw-bold text-dark d-flex align-items-center justify-content-between mb-1">
                                                 <span>
                                                     <i class="icon-base bx bx-barcode me-1 text-info"></i>
                                                     <span>Nomor Surat Aktif Kuliah (NOSKS)</span>
                                                 </span>
-                                                <small class="fw-normal text-muted">(Khusus Surat Aktif Kuliah / Sekolah Anak)</small>
+                                                <!-- <small class="fw-normal text-muted">(Khusus Surat Aktif Kuliah / Sekolah
+                                                                    Anak)</small> -->
                                             </label>
                                             <div class="input-group input-group-merge">
-                                                <span class="input-group-text"><i class="icon-base bx bx-book-reader text-info"></i></span>
+                                                <span class="input-group-text"><i
+                                                        class="icon-base bx bx-book-reader text-info"></i></span>
                                                 <input type="text" class="form-control form-control-sm"
                                                     id="kel_no_surat_sks" name="NOSKS"
                                                     placeholder="Contoh: 123/UN.1/AK/2026 atau No. Surat Keterangan Kampus"
                                                     maxlength="50" />
                                             </div>
                                             <small class="text-muted mt-1 d-block">
-                                                Nomor surat ini disimpan pada field <code>NOSKS</code> di tabel keluarga (khusus untuk anak kuliah usia 21–25 tahun).
+                                                (khusus untuk anak kuliah usia 21–25 tahun).
                                             </small>
                                         </div>
                                     </div>
+
                                 </div>
 
                                 <!-- Baris 5: Pilihan Status Tunjangan & Toolbar Tombol Form -->
@@ -680,13 +809,19 @@
                                                 TERTUNJANG</strong> dan dikunci karena Tanggal Cerai / Wafat terisi.
                                         </small>
                                         <small class="text-warning mt-1 d-none" id="keteranganTunjangMaxAnak">
-                                            <i class="icon-base bx bx-error-circle me-1"></i>Kuota tunjangan anak sudah mencapai batas maksimal (3 orang anak tertunjang). Pilihan status tunjangan dikunci ke <strong>1 - TIDAK TERTUNJANG</strong>.
+                                            <i class="icon-base bx bx-error-circle me-1"></i>Kuota tunjangan anak sudah
+                                            mencapai batas maksimal (3 orang anak tertunjang). Pilihan status tunjangan
+                                            dikunci ke <strong>1 - TIDAK TERTUNJANG</strong>.
                                         </small>
                                         <small class="text-warning mt-1 d-none" id="keteranganTunjangMax5">
-                                            <i class="icon-base bx bx-error-circle me-1"></i>Kuota tunjangan keluarga sudah mencapai batas maksimal (5 orang tertunjang). Pilihan status tunjangan dikunci ke <strong>1 - TIDAK TERTUNJANG</strong>.
+                                            <i class="icon-base bx bx-error-circle me-1"></i>Kuota tunjangan keluarga sudah
+                                            mencapai batas maksimal (5 orang tertunjang). Pilihan status tunjangan dikunci
+                                            ke <strong>1 - TIDAK TERTUNJANG</strong>.
                                         </small>
                                         <small class="text-danger mt-1 d-none" id="keteranganTunjangUsiaAnak">
-                                            <i class="icon-base bx bx-user-x me-1"></i><span id="textTunjangUsiaAnak">Anak usia 21 tahun ke atas tidak dapat ditunjang kecuali memiliki Surat Aktif Kuliah (SKS) maksimal 25 tahun.</span>
+                                            <i class="icon-base bx bx-user-x me-1"></i><span id="textTunjangUsiaAnak">Anak
+                                                usia 21 tahun ke atas tidak dapat ditunjang kecuali memiliki Surat Aktif
+                                                Kuliah (SKS) maksimal 25 tahun.</span>
                                         </small>
                                     </div>
                                     <div class="col-md-5 text-md-end">
@@ -1061,22 +1196,14 @@
 
             $('#createDokumenModal').on('show.bs.modal', function () {
                 $('#createDokumenForm')[0].reset();
-                if ($('#create_dok_skpd').length) {
+                if ($('#create_dok_skpd').is('select')) {
                     SearchableSelect.reset('#create_dok_skpd');
                     loadDokumenSatkerOptions($('#create_dok_kd_satker'), null);
                     loadPegawaiOptions($('#create_dok_pgw_id'), null);
-                } else {
-                    if ($('#create_dok_kd_satker[data-searchable-select]').length) {
-                        const defaultSatker = $('#create_dok_kd_satker option[data-code]:first').val();
-                        if (defaultSatker) {
-                            SearchableSelect.setValue('#create_dok_kd_satker', defaultSatker);
-                        } else {
-                            SearchableSelect.reset('#create_dok_kd_satker');
-                        }
-                    }
-                    if ($('#create_dok_pgw_id[data-searchable-select]').length) {
-                        SearchableSelect.reset('#create_dok_pgw_id');
-                    }
+                } else if (@json($isOpd)) {
+                    const opdSkpd = $('#create_dok_skpd').val() || '{{ $currentUser->kd_skpd ?? "" }}';
+                    loadDokumenSatkerOptions($('#create_dok_kd_satker'), opdSkpd);
+                    loadPegawaiOptions($('#create_dok_pgw_id'), opdSkpd);
                 }
                 clearFormErrors($('#createDokumenForm'));
             });
@@ -1101,17 +1228,14 @@
                     success: function (res) {
                         createModal.hide();
                         $form[0].reset();
-                        if ($('#create_dok_skpd').length) {
+                        if ($('#create_dok_skpd').is('select')) {
                             SearchableSelect.reset('#create_dok_skpd');
                             loadDokumenSatkerOptions($('#create_dok_kd_satker'), null);
                             loadPegawaiOptions($('#create_dok_pgw_id'), null);
-                        } else {
-                            if ($('#create_dok_kd_satker[data-searchable-select]').length) {
-                                SearchableSelect.reset('#create_dok_kd_satker');
-                            }
-                            if ($('#create_dok_pgw_id[data-searchable-select]').length) {
-                                SearchableSelect.reset('#create_dok_pgw_id');
-                            }
+                        } else if (@json($isOpd)) {
+                            const opdSkpd = $('#create_dok_skpd').val() || '{{ $currentUser->kd_skpd ?? "" }}';
+                            loadDokumenSatkerOptions($('#create_dok_kd_satker'), opdSkpd);
+                            loadPegawaiOptions($('#create_dok_pgw_id'), opdSkpd);
                         }
                         table.ajax.reload(null, false);
                         showNotification('success', res.message || 'Dokumen berhasil diunggah!');
@@ -1145,19 +1269,14 @@
 
                 isSettingEditValues = true;
 
-                if ($('#edit_dok_skpd').length) {
+                if ($('#edit_dok_skpd').is('select')) {
                     SearchableSelect.setValue('#edit_dok_skpd', skpd);
                     loadDokumenSatkerOptions($('#edit_dok_kd_satker'), skpd, kdSatker, pgwId);
                     loadPegawaiOptions($('#edit_dok_pgw_id'), skpd, kdSatker, pgwId);
-                } else {
-                    if ($('#edit_dok_kd_satker[data-searchable-select]').length) {
-                        SearchableSelect.setValue('#edit_dok_kd_satker', kdSatker);
-                    }
-                    if ($('#edit_dok_pgw_id[data-searchable-select]').length) {
-                        const userKdSkpd = '{{ $currentUser->kd_skpd ?? "" }}';
-                        const effectiveSatker = kdSatker || '{{ $currentUser->kd_satker ?? "" }}';
-                        loadPegawaiOptions($('#edit_dok_pgw_id'), userKdSkpd, effectiveSatker, pgwId);
-                    }
+                } else if (@json($isOpd)) {
+                    const opdSkpd = $('#edit_dok_skpd').val() || skpd || '{{ $currentUser->kd_skpd ?? "" }}';
+                    loadDokumenSatkerOptions($('#edit_dok_kd_satker'), opdSkpd, kdSatker, pgwId);
+                    loadPegawaiOptions($('#edit_dok_pgw_id'), opdSkpd, kdSatker, pgwId);
                 }
 
                 setTimeout(function () {
@@ -1311,13 +1430,13 @@
                 }
 
                 $tbody.html(`
-                                        <tr>
-                                            <td colspan="6" class="text-center py-4 text-muted">
-                                                <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
-                                                Memuat data susunan keluarga untuk NIP <strong>${nip}</strong> dari database kedua...
-                                            </td>
-                                        </tr>
-                                    `);
+                                                                <tr>
+                                                                    <td colspan="6" class="text-center py-4 text-muted">
+                                                                        <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                                                        Memuat data susunan keluarga untuk NIP <strong>${nip}</strong> dari database kedua...
+                                                                    </td>
+                                                                </tr>
+                                                            `);
 
                 $.ajax({
                     url: `{{ url('keluarga/by-nip') }}/${encodeURIComponent(nip)}`,
@@ -1328,14 +1447,14 @@
 
                         if (currentKeluargaList.length === 0) {
                             $tbody.html(`
-                                                <tr>
-                                                    <td colspan="6" class="text-center py-4 text-muted">
-                                                        <i class="icon-base bx bx-folder-open fs-3 d-block mb-1 text-secondary"></i>
-                                                        Belum ada data anggota keluarga di database kedua untuk NIP ini.<br>
-                                                        <small class="text-muted">Gunakan form di atas untuk menambahkan data baru.</small>
-                                                    </td>
-                                                </tr>
-                                            `);
+                                                                        <tr>
+                                                                            <td colspan="6" class="text-center py-4 text-muted">
+                                                                                <i class="icon-base bx bx-folder-open fs-3 d-block mb-1 text-secondary"></i>
+                                                                                Belum ada data anggota keluarga di database kedua untuk NIP ini.<br>
+                                                                                <small class="text-muted">Gunakan form di atas untuk menambahkan data baru.</small>
+                                                                            </td>
+                                                                        </tr>
+                                                                    `);
                             return;
                         }
 
@@ -1366,27 +1485,27 @@
                             }
 
                             html += `
-                                                    <tr class="table-row-keluarga" data-index="${i}" style="cursor: pointer;">
-                                                        <td><span class="badge bg-label-dark">${item.KDHUBKEL}</span></td>
-                                                        <td>
-                                                            <span class="fw-bold text-dark d-block">${namaLengkap}</span>
-                                                            ${item.NIPSUAMIISTRI ? `<small class="text-muted"><i class="icon-base bx bx-id-card me-1"></i>Pasangan ASN: ${item.NIPSUAMIISTRI}</small>` : ''}
-                                                        </td>
-                                                        <td>${tglLahirFmt}</td>
-                                                        <td><span class="badge bg-label-primary">${nmHubkel}</span></td>
-                                                        <td>${statusBadge}</td>
-                                                        <td class="text-center">
-                                                            <div class="d-inline-flex gap-1">
-                                                                <button type="button" class="btn btn-xs btn-icon btn-outline-primary btn-pilih-keluarga" title="Edit Baris Ini">
-                                                                    <i class="icon-base bx bx-edit-alt"></i>
-                                                                </button>
-                                                                <button type="button" class="btn btn-xs btn-icon btn-outline-danger btn-hapus-row-keluarga" data-nip="${item.NIP}" data-kdhub="${item.KDHUBKEL}" data-nama="${item.NMKEL}" title="Hapus Data">
-                                                                    <i class="icon-base bx bx-trash"></i>
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                `;
+                                                                            <tr class="table-row-keluarga" data-index="${i}" style="cursor: pointer;">
+                                                                                <td><span class="badge bg-label-dark">${item.KDHUBKEL}</span></td>
+                                                                                <td>
+                                                                                    <span class="fw-bold text-dark d-block">${namaLengkap}</span>
+                                                                                    ${item.NIPSUAMIISTRI ? `<small class="text-muted"><i class="icon-base bx bx-id-card me-1"></i>Pasangan ASN: ${item.NIPSUAMIISTRI}</small>` : ''}
+                                                                                </td>
+                                                                                <td>${tglLahirFmt}</td>
+                                                                                <td><span class="badge bg-label-primary">${nmHubkel}</span></td>
+                                                                                <td>${statusBadge}</td>
+                                                                                <td class="text-center">
+                                                                                    <div class="d-inline-flex gap-1">
+                                                                                        <button type="button" class="btn btn-xs btn-icon btn-outline-primary btn-pilih-keluarga" title="Edit Baris Ini">
+                                                                                            <i class="icon-base bx bx-edit-alt"></i>
+                                                                                        </button>
+                                                                                        <button type="button" class="btn btn-xs btn-icon btn-outline-danger btn-hapus-row-keluarga" data-nip="${item.NIP}" data-kdhub="${item.KDHUBKEL}" data-nama="${item.NMKEL}" title="Hapus Data">
+                                                                                            <i class="icon-base bx bx-trash"></i>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </td>
+                                                                            </tr>
+                                                                        `;
                         });
 
                         $tbody.html(html);
@@ -1394,14 +1513,14 @@
                     error: function (xhr) {
                         const errMsg = xhr.responseJSON?.message || 'Gagal memuat data keluarga dari database kedua.';
                         $tbody.html(`
-                                                    <tr>
-                                                        <td colspan="6" class="text-center py-4 text-danger">
-                                                            <i class="icon-base bx bx-error-circle fs-3 d-block mb-1"></i>
-                                                            <strong>Koneksi Database Kedua:</strong><br>
-                                                            <small>${errMsg}</small>
-                                                        </td>
-                                                    </tr>
-                                                `);
+                                                                            <tr>
+                                                                                <td colspan="6" class="text-center py-4 text-danger">
+                                                                                    <i class="icon-base bx bx-error-circle fs-3 d-block mb-1"></i>
+                                                                                    <strong>Koneksi Database Kedua:</strong><br>
+                                                                                    <small>${errMsg}</small>
+                                                                                </td>
+                                                                            </tr>
+                                                                        `);
                         $count.text('0 Anggota');
                     }
                 });
@@ -1475,6 +1594,24 @@
                     $('#kel_tgl_akhir_sks').val('').prop('disabled', true);
                 }
                 $('#kel_no_surat_sks').val(item.NOSKS || '');
+
+                // Reset dan isi field twafat jika ada (khusus pegawai KDHUBKEL = '00')
+                $('#twafat_tglsurat').val('');
+                $('#twafat_penerbit').val('');
+                $('#twafat_jmlterusan').val('4');
+                $('#twafat_tglstop').val('');
+                $('#twafat_kdhubkelpenerima').val('');
+
+                if (item.twafat) {
+                    $('#twafat_tglsurat').val(item.twafat.TGLSURAT ? item.twafat.TGLSURAT.substring(0, 10) : '');
+                    $('#twafat_penerbit').val(item.twafat.PENERBIT ? item.twafat.PENERBIT.trim() : '');
+                    if (item.twafat.JMLTERUSAN !== null && item.twafat.JMLTERUSAN !== undefined) {
+                        $('#twafat_jmlterusan').val(String(item.twafat.JMLTERUSAN));
+                    }
+                    $('#twafat_tglstop').val(item.twafat.TGLSTOP ? item.twafat.TGLSTOP.substring(0, 10) : '');
+                    $('#twafat_kdhubkelpenerima').val(item.twafat.KDHUBKELPENERIMA ? item.twafat.KDHUBKELPENERIMA.trim() : '');
+                }
+
                 // Status Tunjangan (KDTUNJANG: 0 = TIDAK TERTUNJANG, 1 = TERTUNJANG, 2 = CALON TERTUNJANG, 3 = TERCATAT)
                 if (item.TGLCERAI || item.TGLWAFAT) {
                     $('#status_tidak_tertunjang').prop('checked', true);
@@ -1488,6 +1625,7 @@
                     $('#status_tidak_tertunjang').prop('checked', true);
                 }
                 updateSmartSuratLabel();
+                checkSectionTwafat();
 
                 $('#badgeFormMode').text(`Mode: Edit Data (${item.NMKEL})`).removeClass('bg-label-primary').addClass('bg-label-warning');
 
@@ -1509,6 +1647,12 @@
                 $('#kel_no_surat_nikah').val('');
                 $('#kel_no_surat_kematian').val('');
                 $('#kel_no_surat_sks').val('');
+                $('#twafat_tglsurat').val('');
+                $('#twafat_penerbit').val('');
+                $('#twafat_jmlterusan').val('4');
+                $('#twafat_tglstop').val('');
+                $('#twafat_kdhubkelpenerima').val('');
+                $('#section_twafat_pegawai').addClass('d-none');
                 $('#kel_kdstawin').val('1');
                 $('#kel_jenis_kelamin').val('1');
                 $('#kel_tgl_awal_sks').val('');
@@ -1517,6 +1661,7 @@
                 $('#badgeFormMode').text('Mode: Tambah Baru').removeClass('bg-label-warning').addClass('bg-label-primary');
                 SearchableSelect.reset('#kel_hub_keluarga');
                 updateSmartSuratLabel();
+                checkSectionTwafat();
                 $('#kel_hub_keluarga').focus();
             });
 
@@ -1652,9 +1797,56 @@
                 }
             }
 
-            // Event listener perubahan pada field tanggal terkait dan hubkel untuk update smart label
+            // Logika Visibilitas dan Otomatisasi Tabel TWafat khusus Pegawai Wafat (KDHUBKEL = '00')
+            function checkSectionTwafat() {
+                const hubkel = ($('#kel_hub_keluarga').val() || '').trim();
+                const tglWafat = $('#kel_tgl_wafat').val();
+
+                if (hubkel === '00' && tglWafat) {
+                    $('#section_twafat_pegawai').removeClass('d-none');
+                    // Jika twafat_tglsurat belum diisi, otomatis samakan dengan tglWafat
+                    if (!$('#twafat_tglsurat').val()) {
+                        $('#twafat_tglsurat').val(tglWafat);
+                    }
+                    // Jika twafat_tglstop belum diisi, hitung otomatis
+                    if (!$('#twafat_tglstop').val()) {
+                        hitungOtomatisTglStop();
+                    }
+                } else {
+                    $('#section_twafat_pegawai').addClass('d-none');
+                }
+            }
+
+            // Otomatis hitung Tanggal Stop Gaji (TGLSTOP) berdasarkan Tanggal Wafat + Jumlah Bulan Terusan
+            function hitungOtomatisTglStop() {
+                const tglWafat = $('#kel_tgl_wafat').val();
+                if (!tglWafat) return;
+
+                const parts = tglWafat.split('-');
+                if (parts.length !== 3) return;
+
+                const y = parseInt(parts[0], 10);
+                const m = parseInt(parts[1], 10) - 1; // 0-based month
+                const jmlTerusan = parseInt($('#twafat_jmlterusan').val() || '4', 10);
+
+                // Tanggal 1 pada bulan (bulan wafat + 1 + jmlTerusan)
+                const targetDate = new Date(y, m + 1 + jmlTerusan, 1);
+                const targetY = targetDate.getFullYear();
+                const targetM = String(targetDate.getMonth() + 1).padStart(2, '0');
+                const targetD = '01';
+
+                $('#twafat_tglstop').val(`${targetY}-${targetM}-${targetD}`);
+            }
+
+            // Event listener perubahan pada field tanggal terkait dan hubkel untuk update smart label & twafat
             $('#kel_tgl_wafat, #kel_tgl_cerai, #kel_hub_keluarga, #kel_tgl_lahir').on('change input', function () {
                 updateSmartSuratLabel();
+                checkSectionTwafat();
+            });
+
+            // Perubahan jumlah terusan otomatis menghitung ulang TGLSTOP
+            $('#twafat_jmlterusan').on('change', function () {
+                hitungOtomatisTglStop();
             });
 
             // Tombol "Cari NIP" Pasangan ASN (Search by Model Keluarga)

@@ -305,6 +305,23 @@ class KeluargaController extends Controller
                 $isPegawaiLakiLaki = true;
             }
 
+            // Jika sedang menambah data baru Suami/Istri (KDHUBKEL = 10, 20, 30, 40) tanpa TGLCERAI/TGLWAFAT,
+            // ubah otomatis status kawin (kdstawin = 2) pada pegawai bersangkutan (KDHUBKEL = '00') di tabel keluarga & mstpegawai
+            if ($isHubIstri && !$existing && !$tglCeraiWafatTerisi) {
+                Keluarga::where('NIP', $nip)
+                    ->where('KDHUBKEL', '00')
+                    ->update([
+                        'kdstawin' => 2,
+                        'UPDSTAMP' => now(),
+                    ]);
+
+                PegawaiDB2::where('NIP', $nip)
+                    ->update([
+                        'KDSTAWIN' => 2,
+                        'UPDSTAMP' => now(),
+                    ]);
+            }
+
             // Jika sedang menginput/mengedit data istri dan tanggal cerai / wafat terisi pada pegawai laki-laki
             if ($isHubIstri && $tglCeraiWafatTerisi && $isPegawaiLakiLaki) {
                 // Auto ubah kdstawin pegawai laki-laki tersebut di tabel keluarga (KDHUBKEL = '00') menjadi 1 (Tidak Kawin / Duda)
@@ -598,6 +615,16 @@ class KeluargaController extends Controller
             }
 
             if ($isPegawaiLaki && $jIstri === 0) {
+                $adaPasanganAktif = Keluarga::where('NIP', $cleanNip)
+                    ->whereIn('KDHUBKEL', ['10', '20', '30', '40'])
+                    ->where(function ($q) {
+                        $q->whereNull('TGLCERAI')->orWhere('TGLCERAI', '');
+                    })
+                    ->where(function ($q) {
+                        $q->whereNull('TGLWAFAT')->orWhere('TGLWAFAT', '');
+                    })
+                    ->exists();
+
                 $istriMeninggalAtauCerai = Keluarga::where('NIP', $cleanNip)
                     ->whereIn('KDHUBKEL', ['10', '20', '30', '40'])
                     ->where(function ($q) {
@@ -606,7 +633,7 @@ class KeluargaController extends Controller
                     })
                     ->exists();
 
-                if ($istriMeninggalAtauCerai) {
+                if ($istriMeninggalAtauCerai && !$adaPasanganAktif) {
                     $kdstawinPegawai = 1;
                 }
             }

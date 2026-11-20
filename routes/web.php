@@ -53,8 +53,6 @@ use App\Http\Controllers\KeluargaController;
 Route::middleware('guest')->group(function () {
     Route::get('/auth/login-basic', [LoginBasic::class, 'index'])->name('login');
     Route::post('/auth/login-basic', [LoginBasic::class, 'login'])->name('login.process');
-    Route::get('/auth/register-basic', [RegisterBasic::class, 'index'])->name('auth-register-basic');
-    Route::get('/auth/forgot-password-basic', [ForgotPasswordBasic::class, 'index'])->name('auth-reset-password-basic');
 });
 
 // Protected routes (requires authentication)
@@ -74,6 +72,7 @@ Route::middleware('auth')->group(function () {
 
     // Dokumen Management CRUD
     Route::get('/dokumen/pegawai-by-skpd', [DokumenController::class, 'getPegawaiBySkpd'])->name('dokumen.pegawai-by-skpd');
+    Route::get('/dokumen/{id}/file', [DokumenController::class, 'showFile'])->name('dokumen.file');
     Route::patch('/dokumen/{id}/verifikasi', [DokumenController::class, 'verifikasi'])->name('dokumen.verifikasi');
     Route::resource('dokumen', DokumenController::class);
 

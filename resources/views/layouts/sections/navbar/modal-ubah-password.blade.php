@@ -21,7 +21,7 @@
                         <div class="input-group input-group-merge">
                             <input type="password" class="form-control" id="navbar_current_password" name="current_password"
                                 placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
-                                required />
+                                autocomplete="current-password" required />
                             <span class="input-group-text cursor-pointer"><i class="icon-base bx bx-hide"></i></span>
                         </div>
                     </div>
@@ -31,10 +31,10 @@
                         <div class="input-group input-group-merge">
                             <input type="password" class="form-control" id="navbar_new_password" name="new_password"
                                 placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
-                                required />
+                                minlength="8" autocomplete="new-password" required />
                             <span class="input-group-text cursor-pointer"><i class="icon-base bx bx-hide"></i></span>
                         </div>
-                        <small class="text-muted">Minimal 6 karakter.</small>
+                        <small class="text-muted">Minimal 8 karakter, mengandung huruf besar, huruf kecil, dan angka.</small>
                     </div>
 
                     <div class="mb-3 form-password-toggle">
@@ -42,7 +42,7 @@
                         <div class="input-group input-group-merge">
                             <input type="password" class="form-control" id="navbar_new_password_confirmation" name="new_password_confirmation"
                                 placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
-                                required />
+                                minlength="8" autocomplete="new-password" required />
                             <span class="input-group-text cursor-pointer"><i class="icon-base bx bx-hide"></i></span>
                         </div>
                     </div>

@@ -128,10 +128,10 @@
               <div class="input-group input-group-merge">
                 <input type="password" class="form-control" id="create_pgw_password" name="pgw_password"
                   placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
-                  aria-describedby="create_pgw_password">
+                  minlength="8" autocomplete="new-password" aria-describedby="create_pgw_password">
                 <span class="input-group-text cursor-pointer"><i class="icon-base bx bx-hide"></i></span>
               </div>
-              <small class="text-muted">Password login aplikasi (minimal 6 karakter). Boleh dikosongkan jika belum ingin
+              <small class="text-muted">Minimal 8 karakter (huruf besar, huruf kecil, dan angka). Boleh dikosongkan jika belum ingin
                 diset.</small>
             </div>
             <div class="mb-3">
@@ -221,10 +221,10 @@
               <div class="input-group input-group-merge">
                 <input type="password" class="form-control" id="edit_pgw_password" name="pgw_password"
                   placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
-                  aria-describedby="edit_pgw_password">
+                  minlength="8" autocomplete="new-password" aria-describedby="edit_pgw_password">
                 <span class="input-group-text cursor-pointer"><i class="icon-base bx bx-hide"></i></span>
               </div>
-              <small class="text-muted">Isi minimal 6 karakter hanya jika ingin mengganti password pegawai ini.</small>
+              <small class="text-muted">Minimal 8 karakter (huruf besar, huruf kecil, dan angka) jika ingin mengganti password pegawai ini.</small>
             </div>
             <div class="mb-3">
               <label class="form-label small fw-bold text-dark d-block mb-2">
@@ -319,6 +319,7 @@
       const table = $('#pegawaiTable').DataTable({
         processing: true,
         serverSide: true,
+        searchDelay: 400,
         ajax: {
           url: "{{ route('pegawai.index') }}",
           type: "GET",

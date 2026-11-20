@@ -192,7 +192,7 @@
                             @forelse ($recentDokumen as $idx => $dok)
                                 @php
                                     $fileName = basename($dok->dok_file);
-                                    $fileUrl = asset('storage/' . $dok->dok_file);
+                                    $fileUrl = route('dokumen.file', $dok->dok_id);
                                 @endphp
                                 <tr>
                                     <td class="text-center text-muted">{{ $idx + 1 }}</td>

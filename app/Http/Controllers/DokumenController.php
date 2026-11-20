@@ -10,6 +10,7 @@ use App\Models\Hubkel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class DokumenController extends Controller
 {
@@ -191,9 +192,9 @@ class DokumenController extends Controller
           $pegawaiHtml = '<span class="text-muted fst-italic small">- Tidak Ada Pegawai -</span>';
         }
 
-        // 4. Kolom File PDF (Download / Preview)
-        $fileUrl = asset('storage/' . $dok->dok_file);
-        $fileName = basename($dok->dok_file);
+        // 4. Kolom File PDF (Download / Preview melalui endpoint terotorisasi)
+        $fileUrl = route('dokumen.file', $dok->dok_id);
+        $fileName = 'Dokumen_' . $dok->dok_id . '.pdf';
         $fileHtml = '
           <div class="d-flex align-items-center">
             <i class="icon-base bx bxs-file-pdf text-danger fs-3 me-2"></i>
@@ -451,10 +452,10 @@ class DokumenController extends Controller
       return back()->with('error', 'Akun Anda belum memiliki kode SKPD.');
     }
 
-    // Simpan file ke storage/app/public/dokumen_pdf
+    // Simpan file ke disk privat (storage/app/private/dokumen_pdf) dengan nama acak kriptografis (UUID)
     $file = $request->file('dok_file');
-    $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', uniqid() . '.pdf');
-    $filePath = $file->storeAs('dokumen_pdf', $fileName, 'public');
+    $fileName = Str::uuid()->toString() . '.pdf';
+    $filePath = $file->storeAs('dokumen_pdf', $fileName, 'local');
 
     Dokumen::create([
       'dok_skpd' => $kdSkpd,
@@ -596,14 +597,19 @@ class DokumenController extends Controller
 
     // Jika upload file baru
     if ($request->hasFile('dok_file')) {
-      // Hapus file lama jika ada
-      if ($dokumen->dok_file && Storage::disk('public')->exists($dokumen->dok_file)) {
-        Storage::disk('public')->delete($dokumen->dok_file);
+      // Hapus file lama dari disk privat (dan disk public jika masih ada sisa lama)
+      if ($dokumen->dok_file) {
+        if (Storage::disk('local')->exists($dokumen->dok_file)) {
+          Storage::disk('local')->delete($dokumen->dok_file);
+        }
+        if (Storage::disk('public')->exists($dokumen->dok_file)) {
+          Storage::disk('public')->delete($dokumen->dok_file);
+        }
       }
 
       $file = $request->file('dok_file');
-      $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
-      $filePath = $file->storeAs('dokumen_pdf', $fileName, 'public');
+      $fileName = Str::uuid()->toString() . '.pdf';
+      $filePath = $file->storeAs('dokumen_pdf', $fileName, 'local');
       $updateData['dok_file'] = $filePath;
     }
 
@@ -686,6 +692,16 @@ class DokumenController extends Controller
       }
     }
 
+    // Hapus file fisik dari storage agar tidak lagi dapat diakses setelah dokumen dihapus
+    if ($dokumen->dok_file) {
+      if (Storage::disk('local')->exists($dokumen->dok_file)) {
+        Storage::disk('local')->delete($dokumen->dok_file);
+      }
+      if (Storage::disk('public')->exists($dokumen->dok_file)) {
+        Storage::disk('public')->delete($dokumen->dok_file);
+      }
+    }
+
     // Tandai deleted_at & deleted_by
     $dokumen->update([
       'dok_deleted_at' => now(),
@@ -700,5 +716,59 @@ class DokumenController extends Controller
     }
 
     return redirect()->route('dokumen.index')->with('success', 'Dokumen berhasil dihapus.');
+  }
+
+  /**
+   * Menyajikan file PDF dari disk privat dengan pemeriksaan autentikasi & otorisasi
+   */
+  public function showFile($id)
+  {
+    $currentUser = Auth::user();
+    $userRole = isset($currentUser->pgw_role) ? (int) $currentUser->pgw_role : 1;
+    $isAdmin = ($userRole === 0);
+    $isPegawai = ($userRole === 1);
+    $isOpd = ($userRole === 2);
+
+    // Dokumen yang sudah dihapus (dok_deleted_at != null) otomatis 404
+    $dokumen = Dokumen::whereNull('dok_deleted_at')->findOrFail($id);
+
+    // Otorisasi akses file sesuai role
+    if ($isPegawai) {
+      if ((int) $dokumen->dok_pgw_id !== (int) $currentUser->pgw_id) {
+        abort(403, 'Akses ditolak. Anda hanya dapat membuka dokumen milik Anda sendiri.');
+      }
+    } elseif ($isOpd) {
+      $userKdSkpd = trim((string) ($currentUser->pgw_kd_skpd ?? $currentUser->kd_skpd ?? ''));
+      $userKdSatker = trim((string) ($currentUser->pgw_kd_satker ?? $currentUser->kd_satker ?? ''));
+
+      if (!empty($userKdSatker)) {
+        if (trim((string) $dokumen->dok_kd_satker) !== $userKdSatker) {
+          abort(403, 'Akses ditolak. Anda tidak memiliki izin membuka dokumen Satker lain.');
+        }
+      } elseif (trim((string) $dokumen->dok_skpd) !== $userKdSkpd) {
+        abort(403, 'Akses ditolak. Anda tidak memiliki izin membuka dokumen OPD lain.');
+      }
+    } elseif (!$isAdmin) {
+      abort(403, 'Akses ditolak.');
+    }
+
+    $relativePath = ltrim(str_replace('\\', '/', (string) $dokumen->dok_file), '/');
+    if (empty($relativePath) || str_contains($relativePath, '..') || !str_starts_with($relativePath, 'dokumen_pdf/')) {
+      abort(404, 'Berkas dokumen tidak valid.');
+    }
+
+    if (!Storage::disk('local')->exists($relativePath)) {
+      abort(404, 'Berkas dokumen tidak ditemukan.');
+    }
+
+    $fullPath = Storage::disk('local')->path($relativePath);
+
+    return response()->file($fullPath, [
+      'Content-Type' => 'application/pdf',
+      'Content-Disposition' => 'inline; filename="dokumen-' . $dokumen->dok_id . '.pdf"',
+      'X-Content-Type-Options' => 'nosniff',
+      'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
+      'Pragma' => 'no-cache',
+    ]);
   }
 }

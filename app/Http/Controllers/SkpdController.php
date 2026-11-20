@@ -103,6 +103,12 @@ class SkpdController extends Controller
    */
   public function store(Request $request)
   {
+    if (!$this->isAdmin()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Akses ditolak. Hanya Administrator yang berhak mengubah data skpd.'
+      ], 403);
+    }
     $validated = $request->validate([
       'opd_kode' => ['required', 'string', 'max:100', 'unique:skpd,opd_kode'],
       'opd_nama' => ['required', 'string', 'max:255'],
@@ -132,6 +138,12 @@ class SkpdController extends Controller
    */
   public function update(Request $request, $id)
   {
+    if (!$this->isAdmin()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Akses ditolak. Hanya Administrator yang berhak mengubah data skpd.'
+      ], 403);
+    }
     $skpd = Skpd::findOrFail($id);
 
     $validated = $request->validate([
@@ -163,6 +175,12 @@ class SkpdController extends Controller
    */
   public function destroy(Request $request, $id)
   {
+    if (!$this->isAdmin()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Akses ditolak. Hanya Administrator yang berhak mengubah data skpd.'
+      ], 403);
+    }
     $skpd = Skpd::findOrFail($id);
 
     // Cek apakah ada user yang masih terhubung dengan SKPD ini
@@ -187,5 +205,19 @@ class SkpdController extends Controller
     }
 
     return redirect()->route('skpd.index')->with('success', 'SKPD berhasil dihapus.');
+  }
+
+  protected function getCurrentRole(): int
+  {
+    $user = Auth::user();
+    return ($user && isset($user->pgw_role)) ? (int) $user->pgw_role : 1;
+  }
+
+  /**
+   * Memeriksa apakah pengguna yang sedang login adalah Admin (role 0)
+   */
+  protected function isAdmin(): bool
+  {
+    return $this->getCurrentRole() === 0;
   }
 }

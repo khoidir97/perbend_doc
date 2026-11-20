@@ -8,6 +8,7 @@ use App\Models\Skpd;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class PegawaiController extends Controller
 {
@@ -63,19 +64,44 @@ class PegawaiController extends Controller
       $query = (clone $baseQuery)->with(['skpd', 'satker']);
 
       if (!empty($searchValue)) {
-        $query->where(function ($q) use ($searchValue) {
-          $q->where('pgw_nama', 'like', "%{$searchValue}%")
-            ->orWhere('pgw_nip', 'like', "%{$searchValue}%")
-            ->orWhere('pgw_kd_skpd', 'like', "%{$searchValue}%")
-            ->orWhere('pgw_kd_satker', 'like', "%{$searchValue}%")
-            ->orWhereHas('skpd', function ($sq) use ($searchValue) {
-              $sq->where('opd_nama', 'like', "%{$searchValue}%")
-                ->orWhere('opd_kode', 'like', "%{$searchValue}%");
-            })
-            ->orWhereHas('satker', function ($stkQ) use ($searchValue) {
-              $stkQ->where('stk_nama', 'like', "%{$searchValue}%")
-                ->orWhere('stk_kode_satker', 'like', "%{$searchValue}%");
-            });
+        $searchTrim = trim($searchValue);
+        $matchedSkpdCodes = Skpd::where('opd_nama', 'like', "%{$searchTrim}%")
+          ->orWhere('opd_kode', 'like', "%{$searchTrim}%")
+          ->pluck('opd_kode')
+          ->toArray();
+
+        $matchedSatkerCodes = Satker::where('stk_nama', 'like', "%{$searchTrim}%")
+          ->orWhere('stk_kode_satker', 'like', "%{$searchTrim}%")
+          ->pluck('stk_kode_satker')
+          ->toArray();
+
+        $searchLower = strtolower($searchTrim);
+        $matchedRoles = [];
+        if (str_contains('admin', $searchLower)) {
+          $matchedRoles[] = 0;
+        }
+        if (str_contains('pegawai', $searchLower)) {
+          $matchedRoles[] = 1;
+        }
+        if (str_contains('opd', $searchLower)) {
+          $matchedRoles[] = 2;
+        }
+
+        $query->where(function ($q) use ($searchTrim, $matchedSkpdCodes, $matchedSatkerCodes, $matchedRoles) {
+          $q->where('pgw_nama', 'like', "%{$searchTrim}%")
+            ->orWhere('pgw_nip', 'like', "%{$searchTrim}%")
+            ->orWhere('pgw_kd_skpd', 'like', "%{$searchTrim}%")
+            ->orWhere('pgw_kd_satker', 'like', "%{$searchTrim}%");
+
+          if (!empty($matchedSkpdCodes)) {
+            $q->orWhereIn('pgw_kd_skpd', $matchedSkpdCodes);
+          }
+          if (!empty($matchedSatkerCodes)) {
+            $q->orWhereIn('pgw_kd_satker', $matchedSatkerCodes);
+          }
+          if (!empty($matchedRoles)) {
+            $q->orWhereIn('pgw_role', $matchedRoles);
+          }
         });
       }
 
@@ -90,7 +116,8 @@ class PegawaiController extends Controller
         2 => 'pgw_nama',
         3 => 'pgw_kd_skpd',
         4 => 'pgw_kd_satker',
-        5 => 'pgw_id',
+        5 => 'pgw_role',
+        6 => 'pgw_id',
       ];
 
       $orderBy = $columns[$orderColumnIndex] ?? 'pgw_id';
@@ -199,13 +226,13 @@ class PegawaiController extends Controller
       'pgw_nama' => ['required', 'string', 'max:255'],
       'pgw_kd_skpd' => ['nullable', 'string', 'max:10'],
       'pgw_kd_satker' => ['nullable', 'string', 'max:50'],
-      'pgw_password' => ['nullable', 'string', 'min:6'],
+      'pgw_password' => ['nullable', 'string', Password::min(8)->mixedCase()->numbers()],
       'pgw_role' => ['required', 'in:0,1,2'],
     ], [
       'pgw_nip.required' => 'NIP Pegawai wajib diisi.',
       'pgw_nip.unique' => 'NIP sudah terdaftar, gunakan NIP lain.',
       'pgw_nama.required' => 'Nama Pegawai wajib diisi.',
-      'pgw_password.min' => 'Password minimal 6 karakter.',
+      'pgw_password.min' => 'Password minimal 8 karakter dengan kombinasi huruf besar, huruf kecil, dan angka.',
       'pgw_role.required' => 'Silakan pilih Role / Hak Akses Pegawai.',
     ]);
 
@@ -246,13 +273,13 @@ class PegawaiController extends Controller
       'pgw_nama' => ['required', 'string', 'max:255'],
       'pgw_kd_skpd' => ['nullable', 'string', 'max:10'],
       'pgw_kd_satker' => ['nullable', 'string', 'max:50'],
-      'pgw_password' => ['nullable', 'string', 'min:6'],
+      'pgw_password' => ['nullable', 'string', Password::min(8)->mixedCase()->numbers()],
       'pgw_role' => ['required', 'in:0,1,2'],
     ], [
       'pgw_nip.required' => 'NIP Pegawai wajib diisi.',
       'pgw_nip.unique' => 'NIP sudah terdaftar pada pegawai lain.',
       'pgw_nama.required' => 'Nama Pegawai wajib diisi.',
-      'pgw_password.min' => 'Password minimal 6 karakter.',
+      'pgw_password.min' => 'Password minimal 8 karakter dengan kombinasi huruf besar, huruf kecil, dan angka.',
       'pgw_role.required' => 'Silakan pilih Role / Hak Akses Pegawai.',
     ]);
 

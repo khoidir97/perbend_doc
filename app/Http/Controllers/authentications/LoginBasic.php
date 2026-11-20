@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 use App\Models\Pegawai;
 use App\Models\User;
 
@@ -39,19 +40,10 @@ class LoginBasic extends Controller
       ->whereNull('pgw_deleted_at')
       ->first();
 
-    if ($user) {
-      // Cek password cocok (baik via Hash::check atau plain text jika baru diinput langsung di database)
-      if (Hash::check($password, $user->pgw_password) || $user->pgw_password === $password) {
-        // Jika password di database berupa plain text, perbarui menjadi hash aman
-        if ($user->pgw_password === $password) {
-          $user->pgw_password = Hash::make($password);
-          $user->save();
-        }
-
-        Auth::login($user, $remember);
-        $request->session()->regenerate();
-        return redirect()->intended('/');
-      }
+    if ($user && !empty($user->pgw_password) && Hash::check($password, $user->pgw_password)) {
+      Auth::login($user, $remember);
+      $request->session()->regenerate();
+      return redirect()->intended('/');
     }
 
     return back()->withErrors([
@@ -63,18 +55,19 @@ class LoginBasic extends Controller
   {
     $request->validate([
       'current_password' => ['required', 'string'],
-      'new_password' => ['required', 'string', 'min:6', 'confirmed'],
+      'new_password' => ['required', 'string', 'confirmed', 'different:current_password', Password::min(8)->mixedCase()->numbers()],
     ], [
       'current_password.required' => 'Password saat ini wajib diisi.',
       'new_password.required' => 'Password baru wajib diisi.',
-      'new_password.min' => 'Password baru minimal 6 karakter.',
       'new_password.confirmed' => 'Konfirmasi password baru tidak cocok.',
+      'new_password.different' => 'Password baru tidak boleh sama dengan password saat ini.',
+      'new_password.min' => 'Password baru minimal 8 karakter.',
     ]);
 
     $user = Auth::user();
 
-    // Cek kecocokan password saat ini (mendukung bcrypt hash maupun plain text)
-    if (!Hash::check($request->current_password, $user->pgw_password) && $user->pgw_password !== $request->current_password) {
+    // Cek kecocokan password saat ini hanya melalui verifikasi hash aman
+    if (empty($user->pgw_password) || !Hash::check($request->current_password, $user->pgw_password)) {
       return response()->json([
         'success' => false,
         'message' => 'Password saat ini yang Anda masukkan salah.',
@@ -86,6 +79,7 @@ class LoginBasic extends Controller
 
     $user->pgw_password = Hash::make($request->new_password);
     $user->save();
+    $request->session()->regenerate();
 
     return response()->json([
       'success' => true,

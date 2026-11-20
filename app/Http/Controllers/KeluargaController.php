@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\Keluarga;
 use App\Models\Hubkel;
 use App\Models\HistorisJiwa;
+use App\Models\Pegawai;
 use App\Models\PegawaiDB2;
 use App\Models\KeluargaKeterangan;
 use App\Models\Wafat;
@@ -15,6 +17,74 @@ use Carbon\Carbon;
 
 class KeluargaController extends Controller
 {
+    /**
+     * Mengambil role pengguna yang sedang login (0 = admin, 1 = pegawai, 2 = opd)
+     */
+    protected function getCurrentRole(): int
+    {
+        $user = Auth::user();
+        return ($user && isset($user->pgw_role)) ? (int) $user->pgw_role : 1;
+    }
+
+    /**
+     * Memeriksa apakah pengguna yang sedang login adalah Admin (role 0)
+     */
+    protected function isAdmin(): bool
+    {
+        return $this->getCurrentRole() === 0;
+    }
+
+    /**
+     * Memeriksa hak akses (baca/ubah/hapus) data keluarga untuk NIP tertentu:
+     * - Admin (0): boleh mengakses semua NIP
+     * - Pegawai (1): hanya boleh mengakses NIP miliknya sendiri
+     * - OPD (2): hanya boleh mengakses NIP pegawai yang berada di OPD/SKPD-nya
+     */
+    protected function canAccessNip(string $nip): bool
+    {
+        $cleanNip = trim($nip);
+        if ($cleanNip === '') {
+            return false;
+        }
+
+        $user = Auth::user();
+        if (!$user) {
+            return false;
+        }
+
+        $role = $this->getCurrentRole();
+
+        if ($role === 0) {
+            return true;
+        }
+
+        if ($role === 1) {
+            return trim((string) ($user->pgw_nip ?? '')) === $cleanNip;
+        }
+
+        if ($role === 2) {
+            $userKdSkpd = trim((string) ($user->pgw_kd_skpd ?? $user->kd_skpd ?? ''));
+            if ($userKdSkpd === '') {
+                return false;
+            }
+
+            $query = Pegawai::where('pgw_nip', $cleanNip)
+                ->where('pgw_kd_skpd', $userKdSkpd)
+                ->whereNull('pgw_deleted_at');
+
+            $userKdSatker = trim((string) ($user->pgw_kd_satker ?? $user->kd_satker ?? ''));
+            if ($userKdSatker !== '') {
+                $query->where(function ($q) use ($userKdSatker) {
+                    $q->where('pgw_kd_satker', $userKdSatker)
+                        ->orWhereRaw('TRIM(pgw_kd_satker) = ?', [$userKdSatker]);
+                });
+            }
+
+            return $query->exists();
+        }
+
+        return false;
+    }
     /**
      * Mengambil daftar referensi Hubungan Keluarga dari database kedua (hubkel_tbl)
      * Format kode 11 - 19 disesuaikan menjadi "ANAK KE 1" s/d "ANAK KE 9"
@@ -41,9 +111,10 @@ class KeluargaController extends Controller
                 'data' => $list
             ]);
         } catch (\Throwable $th) {
+            Log::error('Gagal memuat referensi hubkel: ' . $th->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal memuat referensi hubungan keluarga dari database kedua: ' . $th->getMessage(),
+                'message' => 'Gagal memuat referensi hubungan keluarga.',
                 'data' => []
             ], 500);
         }
@@ -55,6 +126,14 @@ class KeluargaController extends Controller
     public function getByNip($nip)
     {
         $cleanNip = trim($nip);
+
+        if (!$this->canAccessNip($cleanNip)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak. Anda tidak memiliki izin melihat data keluarga NIP tersebut.',
+                'data' => []
+            ], 403);
+        }
 
         try {
             $keluarga = Keluarga::with('hubkel')
@@ -97,9 +176,10 @@ class KeluargaController extends Controller
                 'data' => $keluarga
             ]);
         } catch (\Throwable $th) {
+            Log::error("Gagal mengambil data keluarga untuk NIP {$cleanNip}: " . $th->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengambil data keluarga dari database kedua: ' . $th->getMessage(),
+                'message' => 'Gagal mengambil data keluarga.',
                 'data' => []
             ], 500);
         }
@@ -154,6 +234,14 @@ class KeluargaController extends Controller
 
         try {
             $nip = trim($validated['NIP']);
+
+            if (!$this->canAccessNip($nip)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akses ditolak. Anda tidak memiliki izin mengubah data keluarga untuk NIP tersebut.'
+                ], 403);
+            }
+
             $kdhubkel = trim($validated['KDHUBKEL']);
             $oldKdhubkel = !empty($validated['OLD_KDHUBKEL']) ? trim($validated['OLD_KDHUBKEL']) : null;
 
@@ -448,9 +536,10 @@ class KeluargaController extends Controller
                 'data' => $dataPayload
             ]);
         } catch (\Throwable $th) {
+            Log::error("Gagal menyimpan data keluarga: " . $th->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menyimpan data ke tabel keluarga: ' . $th->getMessage()
+                'message' => 'Gagal menyimpan data ke tabel keluarga.'
             ], 500);
         }
     }
@@ -611,8 +700,15 @@ class KeluargaController extends Controller
      */
     public function destroy(Request $request, $nip, $kdhubkel)
     {
+        $cleanNip = trim($nip);
+        if (!$this->canAccessNip($cleanNip)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak. Anda tidak memiliki izin menghapus data keluarga untuk NIP tersebut.'
+            ], 403);
+        }
+
         try {
-            $cleanNip = trim($nip);
             $cleanKd = trim($kdhubkel);
 
             $deleted = Keluarga::where('NIP', $cleanNip)
@@ -646,9 +742,10 @@ class KeluargaController extends Controller
                 'message' => 'Data anggota keluarga tidak ditemukan.'
             ], 404);
         } catch (\Throwable $th) {
+            Log::error("Gagal menghapus data keluarga: " . $th->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menghapus data dari tabel keluarga: ' . $th->getMessage()
+                'message' => 'Gagal menghapus data dari tabel keluarga.'
             ], 500);
         }
     }
@@ -659,6 +756,12 @@ class KeluargaController extends Controller
     public function cariPasangan($nip)
     {
         $cleanNip = trim($nip);
+        if (!preg_match('/^[0-9]{18}$/', $cleanNip)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Format NIP pasangan harus 18 digit angka.'
+            ], 422);
+        }
 
         try {
             // 1. Cari data di Model Keluarga (Database Kedua), utamakan kepala keluarga (KDHUBKEL = '00')
@@ -721,9 +824,10 @@ class KeluargaController extends Controller
                 'message' => 'Data pasangan dengan NIP ' . $cleanNip . ' tidak ditemukan di tabel keluarga.'
             ], 404);
         } catch (\Throwable $th) {
+            Log::error("Gagal mencari NIP pasangan {$cleanNip}: " . $th->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mencari NIP pasangan: ' . $th->getMessage()
+                'message' => 'Gagal mencari NIP pasangan.'
             ], 500);
         }
     }

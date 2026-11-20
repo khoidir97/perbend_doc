@@ -7,6 +7,7 @@ use App\Models\Skpd;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
@@ -204,7 +205,7 @@ class UserController extends Controller
     $validated = $request->validate([
       'name' => ['required', 'string', 'max:255', 'unique:users,name'],
       'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-      'password' => ['required', 'string', 'min:5'],
+      'password' => ['required', 'string', Password::min(8)->mixedCase()->numbers()],
       'kd_skpd' => ['nullable', 'string', 'max:100'],
       'kd_satker' => ['nullable', 'string', 'max:50'],
       'role' => ['required', 'in:0,1'],
@@ -215,7 +216,7 @@ class UserController extends Controller
       'email.email' => 'Format email tidak valid.',
       'email.unique' => 'Email sudah terdaftar.',
       'password.required' => 'Password wajib diisi.',
-      'password.min' => 'Password minimal 5 karakter.',
+      'password.min' => 'Password minimal 8 karakter dengan kombinasi huruf besar, huruf kecil, dan angka.',
       'role.required' => 'Role wajib dipilih.',
     ]);
 
@@ -246,7 +247,7 @@ class UserController extends Controller
     $validated = $request->validate([
       'name' => ['required', 'string', 'max:255', 'unique:users,name,' . $user->id],
       'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
-      'password' => ['nullable', 'string', 'min:5'],
+      'password' => ['nullable', 'string', Password::min(8)->mixedCase()->numbers()],
       'kd_skpd' => ['nullable', 'string', 'max:100'],
       'kd_satker' => ['nullable', 'string', 'max:50'],
       'role' => ['required', 'in:0,1'],
@@ -256,7 +257,7 @@ class UserController extends Controller
       'email.required' => 'Email wajib diisi.',
       'email.email' => 'Format email tidak valid.',
       'email.unique' => 'Email sudah terdaftar.',
-      'password.min' => 'Password minimal 5 karakter.',
+      'password.min' => 'Password minimal 8 karakter dengan kombinasi huruf besar, huruf kecil, dan angka.',
       'role.required' => 'Role wajib dipilih.',
     ]);
 
